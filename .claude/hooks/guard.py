@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import PurePosixPath
 
@@ -36,6 +37,24 @@ DANGEROUS_BASH = [
     (re.compile(r"\bgit\s+add\b.*\.env\b"), "adding .env to git"),
     (re.compile(r"\b(cat|less|head|tail|more)\s+\S*\.env\b"), "printing .env exposes secrets"),
 ]
+
+
+CREDIT_PATTERN = re.compile(
+    r"co-authored-by:\s*claude|generated with \[?claude|noreply@anthropic\.com", re.I
+)
+CREDIT_CMD = re.compile(r"\bgit\s+(commit|push|tag)\b|\bgh\s+pr\s+(create|edit|comment)\b")
+
+
+def _unpushed_messages(cwd: str) -> str:
+    """Messages of commits not yet on origin/main; empty if git can't tell."""
+    try:
+        out = subprocess.run(
+            ["git", "log", "--format=%B", "origin/main..HEAD"],
+            cwd=cwd or None, capture_output=True, text=True, timeout=10,
+        )
+        return out.stdout if out.returncode == 0 else ""
+    except Exception:  # fail open
+        return ""
 
 
 def _block(msg: str) -> None:
@@ -81,6 +100,11 @@ def main() -> None:
         for pattern, why in DANGEROUS_BASH:
             if pattern.search(cmd):
                 _block(f"{why}. Ask the user to run this themselves if it is intended.")
+        if CREDIT_CMD.search(cmd):
+            text = cmd + ("\n" + _unpushed_messages(root) if re.search(r"\bgit\s+push\b", cmd) else "")
+            if CREDIT_PATTERN.search(text):
+                _block("commits and PRs must not credit Claude (no Co-Authored-By or "
+                       "'Generated with Claude Code' lines). Remove the credit and retry.")
 
 
 if __name__ == "__main__":
