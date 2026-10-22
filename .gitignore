@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# herdmind: experiment artefacts, never committed (data/raw is read-only)
+data/
+runs/
+*.ckpt
+*.safetensors
+*.pt
+
+# Claude Code: personal overrides stay local
+.claude/settings.local.json
