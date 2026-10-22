@@ -16,9 +16,7 @@ TIMEOUT_S = 120
 
 
 def _changed_python_files() -> bool:
-    res = subprocess.run(
-        ["git", "status", "--porcelain"], capture_output=True, text=True
-    )
+    res = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     return any(line.rstrip().endswith(".py") for line in res.stdout.splitlines())
 
 
@@ -43,8 +41,9 @@ def main() -> None:
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_S)
     except subprocess.TimeoutExpired:
-        print(f"Fast tests exceeded {TIMEOUT_S}s; mark slow tests @pytest.mark.slow.",
-              file=sys.stderr)
+        print(
+            f"Fast tests exceeded {TIMEOUT_S}s; mark slow tests @pytest.mark.slow.", file=sys.stderr
+        )
         sys.exit(2)
 
     # 5 = no tests collected: fine early in the project.

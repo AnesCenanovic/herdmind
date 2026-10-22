@@ -23,13 +23,17 @@ SECRET_PATTERNS = [
     (re.compile(r"sk-or-v1-[A-Za-z0-9]{20,}"), "OpenRouter API key"),
     (re.compile(r"sk-[A-Za-z0-9_-]{32,}"), "API key"),
     (re.compile(r"hf_[A-Za-z0-9]{30,}"), "Hugging Face token"),
-    (re.compile(r"(?i)(api[_-]?key|token|secret)\s*[:=]\s*['\"][A-Za-z0-9_\-]{16,}['\"]"),
-     "hard-coded credential"),
+    (
+        re.compile(r"(?i)(api[_-]?key|token|secret)\s*[:=]\s*['\"][A-Za-z0-9_\-]{16,}['\"]"),
+        "hard-coded credential",
+    ),
 ]
 
 DANGEROUS_BASH = [
-    (re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+(/|~|\.|\*|data\b|src\b)(\s|$)"),
-     "recursive delete of a broad path"),
+    (
+        re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*f?\s+(/|~|\.|\*|data\b|src\b)(\s|$)"),
+        "recursive delete of a broad path",
+    ),
     (re.compile(r"\bgit\s+push\b.*(--force|-f\b)"), "force push"),
     (re.compile(r"\bgit\s+push\b.*\bmain\b"), "direct push to main (use a branch)"),
     (re.compile(r"\bgit\s+reset\s+--hard\b"), "git reset --hard discards work"),
@@ -50,7 +54,10 @@ def _unpushed_messages(cwd: str) -> str:
     try:
         out = subprocess.run(
             ["git", "log", "--format=%B", "origin/main..HEAD"],
-            cwd=cwd or None, capture_output=True, text=True, timeout=10,
+            cwd=cwd or None,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return out.stdout if out.returncode == 0 else ""
     except Exception:  # fail open
@@ -86,9 +93,7 @@ def main() -> None:
         for pattern, why in PROTECTED_PATHS:
             if pattern.search(path):
                 _block(f"{path}: {why}.")
-        text = " ".join(
-            str(inp.get(k, "")) for k in ("content", "new_string", "new_source")
-        )
+        text = " ".join(str(inp.get(k, "")) for k in ("content", "new_string", "new_source"))
         for e in inp.get("edits", []) or []:
             text += " " + str(e.get("new_string", ""))
         for pattern, what in SECRET_PATTERNS:
@@ -101,10 +106,14 @@ def main() -> None:
             if pattern.search(cmd):
                 _block(f"{why}. Ask the user to run this themselves if it is intended.")
         if CREDIT_CMD.search(cmd):
-            text = cmd + ("\n" + _unpushed_messages(root) if re.search(r"\bgit\s+push\b", cmd) else "")
+            text = cmd + (
+                "\n" + _unpushed_messages(root) if re.search(r"\bgit\s+push\b", cmd) else ""
+            )
             if CREDIT_PATTERN.search(text):
-                _block("commits and PRs must not credit Claude (no Co-Authored-By or "
-                       "'Generated with Claude Code' lines). Remove the credit and retry.")
+                _block(
+                    "commits and PRs must not credit Claude (no Co-Authored-By or "
+                    "'Generated with Claude Code' lines). Remove the credit and retry."
+                )
 
 
 if __name__ == "__main__":
