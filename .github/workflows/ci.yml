@@ -10,10 +10,12 @@ permissions:
 
 jobs:
   hygiene:
-    # Fail fast on files CLAUDE.md says are never committed.
+    # Fail fast on things CLAUDE.md says are never committed or written.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Block forbidden files
         run: |
           bad=$(git ls-files | grep -E '(^|/)(data|runs)/|(^|/)\.env(\..*)?$|\.(ckpt|safetensors|pt)$|settings\.local\.json$' || true)
@@ -28,23 +30,32 @@ jobs:
               print("Notebooks with outputs:", *bad, sep=chr(10))
               sys.exit(1)
           PY
+      - name: Block AI credit lines
+        # Commit messages and PR text; the squash commit body comes from the PR text.
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$HEAD_SHA" ]; then
+            text=$(git log --format=%B "$BASE_SHA..$HEAD_SHA"; printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY")
+          else
+            text=$(git log -1 --format=%B)
+          fi
+          if printf '%s' "$text" | grep -iE 'co-authored-by:[[:space:]]*claude|generated with \[?claude|noreply@anthropic\.com'; then
+            echo "Remove the AI credit lines above (see Git section of .claude/CLAUDE.md)."
+            exit 1
+          fi
 
   test:
     runs-on: ubuntu-latest
-    # No Python project yet: nothing to lint or test.
     steps:
       - uses: actions/checkout@v4
-      - id: py
-        run: |
-          if [ -f pyproject.toml ]; then echo present=true >> "$GITHUB_OUTPUT"; else echo present=false >> "$GITHUB_OUTPUT"; fi
-      - if: steps.py.outputs.present == 'true'
-        uses: astral-sh/setup-uv@v5
-      - if: steps.py.outputs.present == 'true'
-        run: uv sync --frozen || uv sync
-      - if: steps.py.outputs.present == 'true'
-        run: uv run ruff check .
-      - if: steps.py.outputs.present == 'true'
-        run: uv run ruff format --check .
-      - if: steps.py.outputs.present == 'true'
-        # exit 5 = no tests collected, fine until tests/ exists
-        run: uv run pytest -m "not slow" -q || [ $? -eq 5 ]
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -m "not slow" -q
