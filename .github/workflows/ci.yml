@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    # Fail fast on files CLAUDE.md says are never committed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Block forbidden files
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)(data|runs)/|(^|/)\.env(\..*)?$|\.(ckpt|safetensors|pt)$|settings\.local\.json$' || true)
+          if [ -n "$bad" ]; then echo "Forbidden files tracked:"; echo "$bad"; exit 1; fi
+      - name: Block notebook outputs
+        run: |
+          python3 - <<'PY'
+          import json, subprocess, sys
+          bad = [f for f in subprocess.check_output(["git", "ls-files", "*.ipynb"], text=True).split()
+                 if any(c.get("outputs") for c in json.load(open(f)).get("cells", []))]
+          if bad:
+              print("Notebooks with outputs:", *bad, sep=chr(10))
+              sys.exit(1)
+          PY
+
+  test:
+    runs-on: ubuntu-latest
+    # No Python project yet: nothing to lint or test.
+    steps:
+      - uses: actions/checkout@v4
+      - id: py
+        run: |
+          if [ -f pyproject.toml ]; then echo present=true >> "$GITHUB_OUTPUT"; else echo present=false >> "$GITHUB_OUTPUT"; fi
+      - if: steps.py.outputs.present == 'true'
+        uses: astral-sh/setup-uv@v5
+      - if: steps.py.outputs.present == 'true'
+        run: uv sync --frozen || uv sync
+      - if: steps.py.outputs.present == 'true'
+        run: uv run ruff check .
+      - if: steps.py.outputs.present == 'true'
+        run: uv run ruff format --check .
+      - if: steps.py.outputs.present == 'true'
+        # exit 5 = no tests collected, fine until tests/ exists
+        run: uv run pytest -m "not slow" -q || [ $? -eq 5 ]
