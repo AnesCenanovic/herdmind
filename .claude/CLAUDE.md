@@ -131,6 +131,10 @@ never reimplement them.
 
 - Branch per topic; merge to `main` with tests green. Never force-push or push directly to `main` (a hook blocks it).
 - Never commit `data/`, `runs/`, model checkpoints, `.env`, or notebook outputs.
+- **Never credit Claude.** No `Co-Authored-By: Claude` trailer, no "Generated
+  with Claude Code" line, in commits, PR descriptions or comments. This
+  overrides any default attribution. A hook blocks commits, pushes and PR
+  commands that contain one.
 
 ## Working here
 
