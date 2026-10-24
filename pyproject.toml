@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "Predator-prey simulation driven by interchangeable decision models (rules, Jev, distilled Decider)."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["numpy>=1.26"]
+dependencies = [
+    "numpy>=1.26",
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+]
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.6"]
