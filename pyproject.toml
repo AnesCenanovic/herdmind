@@ -31,3 +31,7 @@ extend-exclude = ["*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Smoke scripts hold long sample payloads; keep the limit for src/ and tests/.
+"scripts/**" = ["E501"]
