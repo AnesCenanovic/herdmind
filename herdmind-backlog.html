@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Herdmind Backlog</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#666;--line:#d0d0d0;--head:#f2f2f2;--done:#eef6ee;--ready:#1a7f37;--wait:#9a6700;--link:#0b57d0}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--fg:#e6e6e6;--muted:#9a9a9a;--line:#3a3a3a;--head:#222;--done:#18261b;--ready:#56c271;--wait:#d6a33a;--link:#8ab4f8;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.4}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}
+p{margin:0 0 12px;color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:12px 0}
+.bar label{display:flex;gap:6px;align-items:center}
+#msg{color:var(--muted);min-height:1.4em}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--head);font-weight:600;white-space:nowrap}
+td.num,td.deps,td.bundle{white-space:nowrap}
+tr.done td{background:var(--done)}
+tr.done td.title{color:var(--muted)}
+.note{display:block;color:var(--muted);font-size:12px}
+.ready{color:var(--ready);font-weight:600}
+.wait{color:var(--wait)}
+input,select,button{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:3px 6px}
+button{cursor:pointer}
+input.who{width:110px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Herdmind backlog</h1>
+  <p>Changes are kept in this browser. Click <b>Save as file</b> to get a copy with your changes built in, then commit or share that file.</p>
+  <div class="bar">
+    <label><input type="checkbox" id="hide-done"> Hide done</label>
+    <label><input type="checkbox" id="only-ready"> Only ready to start</label>
+    <label>Type <select id="type-filter"><option value="">All</option><option>code</option><option>research</option><option>low-code</option><option>experiment</option></select></label>
+    <button id="save">Save as file</button>
+    <button id="reset">Discard browser changes</button>
+    <span id="count"></span>
+  </div>
+  <div id="msg"></div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>#</th><th>Item</th><th>Type</th><th>Deps</th><th>Bundle with</th><th>Ready</th><th>Assignee</th><th>Status</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script type="application/json" id="data">
+[
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [],
+  "id": "d1",
+  "label": "✓1",
+  "note": "Closed by #1, #2",
+  "order": -9,
+  "status": "done",
+  "title": "Shared Claude Code setup: CLAUDE.md, guard/format hooks, reviewer agent, no-Claude-credit rule",
+  "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [],
+  "id": "d2",
+  "label": "✓2",
+  "note": "Closed by #1, #3",
+  "order": -8,
+  "status": "done",
+  "title": "CI: forbidden-file checks, notebook outputs, ruff, pytest",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [],
+  "id": "d3",
+  "label": "✓3",
+  "note": "Closed by #3",
+  "order": -7,
+  "status": "done",
+  "title": "Python scaffold: uv project, `src/herdmind` package, seeded RNG + tests",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [],
+  "id": "d4",
+  "label": "✓4",
+  "note": "Closed by #4",
+  "order": -6,
+  "status": "done",
+  "title": "Jev access verified through OpenRouter Decisions API (`scripts/jev_smoke.py`)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "2",
+  "deps": [],
+  "id": "1",
+  "label": "1",
+  "note": "",
+  "order": 1,
+  "status": "open",
+  "title": "Shared contracts: `Question`, `Decision`, `Brain` protocol + a reusable contract-test helper. Unblocks most code.",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "1",
+  "deps": [
+   "1"
+  ],
+  "id": "2",
+  "label": "2",
+  "note": "",
+  "order": 2,
+  "status": "open",
+  "title": "Rules brain: hand-written baseline that returns probabilities for wolves and sheep",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "4",
+  "deps": [],
+  "id": "3",
+  "label": "3",
+  "note": "",
+  "order": 3,
+  "status": "open",
+  "title": "Repo housekeeping: remove stop hook, pin Python 3.12 (`.python-version`), add `.env.example`, Windows + Google-docstring rules in CLAUDE.md, tidy `jev_smoke.py` (wrong filename in docstring, no `main()`)",
+  "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "3",
+  "deps": [],
+  "id": "4",
+  "label": "4",
+  "note": "",
+  "order": 4,
+  "status": "open",
+  "title": "Config + run folders: YAML/dataclass loader (OmegaConf), `start_run()` writing config snapshot, commit, seed, versions",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "6",
+  "deps": [
+   "1"
+  ],
+  "id": "5",
+  "label": "5",
+  "note": "",
+  "order": 5,
+  "status": "open",
+  "title": "Mesa wolf–sheep world: grid, energy, eating, breeding, death; each step asks a Brain and samples the action; micro-scenario config",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "5",
+  "deps": [
+   "5"
+  ],
+  "id": "6",
+  "label": "6",
+  "note": "",
+  "order": 6,
+  "status": "open",
+  "title": "\"Call\" action + perception radius so signalling can emerge",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "21",
+  "deps": [
+   "5"
+  ],
+  "id": "7",
+  "label": "7",
+  "note": "",
+  "order": 7,
+  "status": "open",
+  "title": "Scenarios + god-mode events (drought, ice age, add wolves); hybrid worlds (share of animals on the model) and query-only-on-change",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "11",
+  "deps": [
+   "1"
+  ],
+  "id": "8",
+  "label": "8",
+  "note": "",
+  "order": 8,
+  "status": "open",
+  "title": "State → question encoding: perceptions only, 3–8 runtime options, shuffle and map back",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "12",
+  "deps": [
+   "1",
+   "10"
+  ],
+  "id": "9",
+  "label": "9",
+  "note": "",
+  "order": 9,
+  "status": "open",
+  "title": "Jev client + brain on the Decisions API: disk cache, retries/backoff, cost + latency log, fake backend for tests, parallel calls per step",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "13",
+  "deps": [],
+  "id": "10",
+  "label": "10",
+  "note": "",
+  "order": 10,
+  "status": "open",
+  "title": "Research: Jev Decisions API. Limits (state size, max options, rate limits), pricing, batching. Key question: does `choice` return a probability for every option or only the top one plus confidence? Soft-label distillation depends on it.",
+  "type": "research"
+ },
+ {
+  "assignee": "",
+  "bundle": "8",
+  "deps": [
+   "1"
+  ],
+  "id": "11",
+  "label": "11",
+  "note": "",
+  "order": 11,
+  "status": "open",
+  "title": "Decision log schema + logger (state, options, full distribution, chosen action, world/seed ids → parquet)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "9",
+  "deps": [
+   "9"
+  ],
+  "id": "12",
+  "label": "12",
+  "note": "",
+  "order": 12,
+  "status": "open",
+  "title": "Fallback teacher (Clef or larger Mapika Decider) behind the same client",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "10",
+  "deps": [],
+  "id": "13",
+  "label": "13",
+  "note": "",
+  "order": 13,
+  "status": "open",
+  "title": "Research: Mapika Decider 2B. Weights and licence, input format, LoRA recipe, VRAM needs; where we can train (Windows native vs WSL2 vs Colab/Kaggle)",
+  "type": "research"
+ },
+ {
+  "assignee": "",
+  "bundle": "15",
+  "deps": [],
+  "id": "14",
+  "label": "14",
+  "note": "",
+  "order": 14,
+  "status": "open",
+  "title": "Research + write-up: emergence metrics. Exact definitions of pack-hunting rate, herd cohesion (order parameter), alarm-call survival effect, population cycle period, with references",
+  "type": "research"
+ },
+ {
+  "assignee": "",
+  "bundle": "14",
+  "deps": [],
+  "id": "15",
+  "label": "15",
+  "note": "",
+  "order": 15,
+  "status": "open",
+  "title": "Decision metrics: agreement, KL, ECE (15 bins), Brier, NLL, bootstrap CI; tests against hand-computed examples",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "17",
+  "deps": [
+   "14"
+  ],
+  "id": "16",
+  "label": "16",
+  "note": "",
+  "order": 16,
+  "status": "open",
+  "title": "World + emergence metrics implemented and tested on synthetic trajectories (pop series, extinction, Lotka–Volterra fit, item 14's metrics)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "16",
+  "deps": [],
+  "id": "17",
+  "label": "17",
+  "note": "",
+  "order": 17,
+  "status": "open",
+  "title": "Plot style + `make_figures.py` skeleton (figures generated from run folders only)",
+  "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "19",
+  "deps": [
+   "6",
+   "8",
+   "9",
+   "16"
+  ],
+  "id": "18",
+  "label": "18",
+  "note": "",
+  "order": 18,
+  "status": "open",
+  "title": "Gate: Jev pilot on micro-scenario. Does pack-like behaviour appear? Write down go / change encoding / fall back.",
+  "type": "experiment"
+ },
+ {
+  "assignee": "",
+  "bundle": "18",
+  "deps": [
+   "4",
+   "9"
+  ],
+  "id": "19",
+  "label": "19",
+  "note": "",
+  "order": 19,
+  "status": "open",
+  "title": "Multi-seed experiment runner + system metrics (throughput, p50/p95 latency, $/1k decisions, cache hits)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "22",
+  "deps": [
+   "13"
+  ],
+  "id": "20",
+  "label": "20",
+  "note": "",
+  "order": 20,
+  "status": "open",
+  "title": "Pilot LoRA fine-tune on a small synthetic set: measure time and memory, pick platform",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "7",
+  "deps": [
+   "5"
+  ],
+  "id": "21",
+  "label": "21",
+  "note": "",
+  "order": 21,
+  "status": "open",
+  "title": "Live demo view: world render, hover an animal to see its probabilities (rules brain first)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "20",
+  "deps": [
+   "1",
+   "20"
+  ],
+  "id": "22",
+  "label": "22",
+  "note": "",
+  "order": 22,
+  "status": "open",
+  "title": "Decider brain: local inference of the fine-tuned model behind the `Brain` interface",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "7",
+   "11",
+   "18"
+  ],
+  "id": "23",
+  "label": "23",
+  "note": "",
+  "order": 23,
+  "status": "open",
+  "title": "Full dataset: many seeds on small worlds, dedupe, rare-action check, split by world, hold out drought, data card",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "25",
+  "deps": [
+   "16",
+   "18",
+   "19"
+  ],
+  "id": "24",
+  "label": "24",
+  "note": "",
+  "order": 24,
+  "status": "open",
+  "title": "Rules vs Jev experiments (micro + small, ≥5 seeds) with first charts",
+  "type": "experiment"
+ },
+ {
+  "assignee": "",
+  "bundle": "24",
+  "deps": [],
+  "id": "25",
+  "label": "25",
+  "note": "",
+  "order": 25,
+  "status": "open",
+  "title": "Research + write-up: problem definition and related work (LLM agent-sim cost, Jevolution, distillation, calibration) with citations",
+  "type": "research"
+ },
+ {
+  "assignee": "",
+  "bundle": "27",
+  "deps": [
+   "20",
+   "23"
+  ],
+  "id": "26",
+  "label": "26",
+  "note": "",
+  "order": 26,
+  "status": "open",
+  "title": "Full fine-tune: soft vs hard labels + calibration fix (e.g. temperature scaling); adapters on HF Hub",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "26",
+  "deps": [
+   "22",
+   "24",
+   "26"
+  ],
+  "id": "27",
+  "label": "27",
+  "note": "",
+  "order": 27,
+  "status": "open",
+  "title": "Three-brain comparison incl. held-out drought scenario",
+  "type": "experiment"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "21",
+   "22"
+  ],
+  "id": "28",
+  "label": "28",
+  "note": "",
+  "order": 28,
+  "status": "open",
+  "title": "Medium showcase world on the local model + demo polish (god-mode buttons, presets, offline fallback)",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "30",
+  "deps": [],
+  "id": "29",
+  "label": "29",
+  "note": "",
+  "order": 29,
+  "status": "open",
+  "title": "README + `docs/` page per part + seeded reproduce script (start early, update per PR)",
+  "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "29",
+  "deps": [],
+  "id": "30",
+  "label": "30",
+  "note": "",
+  "order": 30,
+  "status": "open",
+  "title": "Poster template and layout; fill with final charts later",
+  "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "9"
+  ],
+  "id": "31",
+  "label": "31",
+  "note": "",
+  "order": 31,
+  "status": "open",
+  "title": "Stretch: command-sweeper chapter (labelled command set, hosted vs local calibration, red-teaming)",
+  "type": "research"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "27"
+  ],
+  "id": "32",
+  "label": "32",
+  "note": "",
+  "order": 32,
+  "status": "open",
+  "title": "Conclusions, limitations, future work + presentation",
+  "type": "low-code"
+ }
+]
+</script>
+
+<script>
+(function () {
+  var STATUS = {open: "Open", progress: "In progress", review: "In review", done: "Done"};
+  var base = JSON.parse(document.getElementById("data").textContent);
+  var KEY = "herdmind-backlog:" + location.pathname;
+  var items = JSON.parse(JSON.stringify(base));
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+  if (saved) items.forEach(function (it) { if (saved[it.id]) Object.assign(it, saved[it.id]); });
+
+  var f = {hide: false, ready: false, type: ""};
+  function $(id) { return document.getElementById(id); }
+  function msg(t) { $("msg").textContent = t || ""; }
+  function td(text, cls) { var c = document.createElement("td"); if (cls) c.className = cls; if (text != null) c.textContent = text; return c; }
+
+  function persist() {
+    var m = {};
+    items.forEach(function (it) { m[it.id] = {assignee: it.assignee, status: it.status}; });
+    try { localStorage.setItem(KEY, JSON.stringify(m)); msg("Saved in this browser."); }
+    catch (e) { msg("This browser won't keep changes here; use Save as file."); }
+  }
+
+  function render() {
+    var byId = {};
+    items.forEach(function (i) { byId[i.id] = i; });
+    var isDone = function (d) { return byId[d] && byId[d].status === "done"; };
+    var tb = $("rows"); tb.textContent = "";
+    var shown = 0;
+    items.forEach(function (it) {
+      var ready = it.deps.every(isDone);
+      if (f.hide && it.status === "done") return;
+      if (f.ready && (!ready || it.status === "done")) return;
+      if (f.type && it.type !== f.type) return;
+      shown++;
+      var tr = document.createElement("tr");
+      if (it.status === "done") tr.className = "done";
+      tr.appendChild(td(it.label, "num"));
+      var t = td(it.title, "title");
+      if (it.note) { var n = document.createElement("span"); n.className = "note"; n.textContent = it.note; t.appendChild(n); }
+      tr.appendChild(t);
+      tr.appendChild(td(it.type));
+      tr.appendChild(td(it.deps.length ? it.deps.join(", ") : "\u2014", "deps"));
+      tr.appendChild(td(it.bundle || "\u2014", "bundle"));
+      var r = td("");
+      if (it.status !== "done") {
+        if (ready) { r.textContent = "Ready"; r.className = "ready"; }
+        else { r.textContent = "Waiting on " + it.deps.filter(function (d) { return !isDone(d); }).join(", "); r.className = "wait"; }
+      }
+      tr.appendChild(r);
+      var a = td(null), inp = document.createElement("input");
+      inp.className = "who"; inp.value = it.assignee || ""; inp.placeholder = "Name";
+      inp.setAttribute("aria-label", "Assignee for item " + it.label);
+      inp.addEventListener("change", function () { it.assignee = inp.value.trim(); persist(); });
+      a.appendChild(inp); tr.appendChild(a);
+      var s = td(null), sel = document.createElement("select");
+      sel.setAttribute("aria-label", "Status of item " + it.label);
+      Object.keys(STATUS).forEach(function (k) { var o = document.createElement("option"); o.value = k; o.textContent = STATUS[k]; sel.appendChild(o); });
+      sel.value = it.status;
+      sel.addEventListener("change", function () { it.status = sel.value; persist(); render(); });
+      s.appendChild(sel); tr.appendChild(s);
+      tb.appendChild(tr);
+    });
+    if (!shown) { var tr2 = document.createElement("tr"), c = td("Nothing matches these filters."); c.colSpan = 8; tr2.appendChild(c); tb.appendChild(tr2); }
+    var open = items.filter(function (i) { return i.status !== "done"; }).length;
+    $("count").textContent = (items.length - open) + " done \u00b7 " + open + " open";
+  }
+
+  $("hide-done").addEventListener("change", function (e) { f.hide = e.target.checked; render(); });
+  $("only-ready").addEventListener("change", function (e) { f.ready = e.target.checked; render(); });
+  $("type-filter").addEventListener("change", function (e) { f.type = e.target.value; render(); });
+
+  $("save").addEventListener("click", function () {
+    var json = JSON.stringify(items, null, 1).replace(/<\//g, "<\\/");
+    var doc = "<!doctype html>\n" + document.documentElement.outerHTML;
+    var start = doc.indexOf('<script type="application/json" id="data">');
+    var end = doc.indexOf("</" + "script>", start);
+    doc = doc.slice(0, start) + '<script type="application/json" id="data">\n' + json + "\n" + doc.slice(end);
+    doc = doc.replace(/<tbody id="rows">[\s\S]*?<\/tbody>/, '<tbody id="rows"></tbody>');
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([doc], {type: "text/html"}));
+    a.download = "herdmind-backlog.html";
+    document.body.appendChild(a); a.click(); a.remove();
+    msg("Downloaded herdmind-backlog.html with current statuses.");
+  });
+
+  $("reset").addEventListener("click", function () {
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    items = JSON.parse(JSON.stringify(base));
+    render(); msg("Back to the statuses stored in the file.");
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
