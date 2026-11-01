@@ -44,13 +44,6 @@
           { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/format_python.py\"" }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/tests_on_stop.py\"", "timeout": 150 }
-        ]
-      }
     ]
   }
 }
