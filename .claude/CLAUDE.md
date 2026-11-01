@@ -131,6 +131,11 @@ never reimplement them.
 
 - Branch per topic; merge to `main` with tests green. Never force-push or push directly to `main` (a hook blocks it).
 - Never commit `data/`, `runs/`, model checkpoints, `.env`, or notebook outputs.
+- **Every PR updates `herdmind-backlog.html` in the same PR.** Edit the JSON in
+  the `data` script tag: set `status` to `done` with `note: "Closed by #N"` for
+  items the PR completes, or add a note for partly done ones. Open the PR first
+  to get its number, then push the backlog change as a follow-up commit. New
+  work that isn't in the backlog gets a new item.
 - **Never credit Claude.** No `Co-Authored-By: Claude` trailer, no "Generated
   with Claude Code" line, in commits, PR descriptions or comments. This
   overrides any default attribution. A hook blocks commits, pushes and PR
