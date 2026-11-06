@@ -1,0 +1,7 @@
+name: micro
+seed: 0
+steps: 100
+brain: rules
+world:
+  width: 20
+  height: 20
