@@ -1,7 +1,8 @@
-"""Run logs: every decision and every birth or death, one JSON object per line.
+"""Run logs: every decision, every birth or death, and the board after every step.
 
 Decisions are the distillation dataset (state, options, full distribution,
-chosen option); events feed the emergence metrics. JSONL keeps it dependency
+chosen option); events feed the emergence metrics; the ledger (``state.py``)
+records the exact board. JSONL keeps it dependency
 free and append-only; logs are flushed every step, so a crashed run keeps
 every finished step.
 shortcut: JSONL, not parquet; convert when the dataset gets big (item 23).
@@ -13,6 +14,8 @@ import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from types import TracebackType
+
+from herdmind.world.state import LEDGER_FILE, BoardState
 
 
 @dataclass(frozen=True)
@@ -41,18 +44,20 @@ class EventRecord:
 
 
 class RunLog:
-    """Appends records to ``decisions.jsonl`` and ``events.jsonl`` in a run folder."""
+    """Writes ``decisions.jsonl``, ``events.jsonl`` and the ledger in a run folder."""
 
     def __init__(self, run_dir: str | Path) -> None:
         run_dir = Path(run_dir)
         # "x": refuse to append into an earlier run's log and silently mix two runs.
         self._decisions = (run_dir / "decisions.jsonl").open("x", encoding="utf-8")
         self._events = (run_dir / "events.jsonl").open("x", encoding="utf-8")
+        self._ledger = (run_dir / LEDGER_FILE).open("x", encoding="utf-8")
+        self._files = (self._decisions, self._events, self._ledger)
 
     def flush(self) -> None:
         """Called once per step, so a killed run keeps every finished step."""
-        self._decisions.flush()
-        self._events.flush()
+        for f in self._files:
+            f.flush()
 
     def decision(self, rec: DecisionRecord) -> None:
         self._decisions.write(json.dumps(asdict(rec)) + "\n")
@@ -60,9 +65,12 @@ class RunLog:
     def event(self, rec: EventRecord) -> None:
         self._events.write(json.dumps(asdict(rec)) + "\n")
 
+    def state(self, board: BoardState) -> None:
+        self._ledger.write(board.to_json() + "\n")
+
     def close(self) -> None:
-        self._decisions.close()
-        self._events.close()
+        for f in self._files:
+            f.close()
 
     def __enter__(self) -> RunLog:
         return self

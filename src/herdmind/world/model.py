@@ -24,10 +24,12 @@ from herdmind.world.laws import make_laws
 from herdmind.world.log import DecisionRecord, EventRecord, RunLog
 from herdmind.world.perception import perceive
 from herdmind.world.spec import SPECIES, SpeciesTraits, WorldSpec
+from herdmind.world.state import BoardState, snapshot
 
 
 class WorldModel(mesa.Model):
-    """One world. ``history`` holds per-step sheep/wolf/grass counts.
+    """One world. ``history`` holds per-step sheep/wolf/grass counts; with a log, the
+    full board of every step goes to the ledger (``world/state.py``).
 
     Two RNGs from two seeds: ``world_seed`` lays out the start (animals, grass),
     ``seed`` drives everything after (shuffles, sampling, law rolls). Same map,
@@ -98,12 +100,12 @@ class WorldModel(mesa.Model):
         for i in self.rng.permutation(len(wolves)):
             self._hunt(wolves[i])
         self._upkeep()
-        if self.log:
-            self.log.flush()
         growing = self.regrow > 0
         self.regrow[growing] -= 1
         self.grass |= growing & (self.regrow == 0)
         self._record()
+        if self.log:
+            self.log.flush()
 
     def _decide(self, acting: Sequence[Animal], questions: Sequence[Question]) -> list[Decision]:
         """One batch call per distinct brain; a brain shared by both species is called once."""
@@ -191,11 +193,18 @@ class WorldModel(mesa.Model):
                 )
             )
 
+    def state(self) -> BoardState:
+        """The exact board right now."""
+        return snapshot(self)
+
     def _record(self) -> None:
+        board = self.state()
+        if self.log:
+            self.log.state(board)
         self.history.append(
             {
-                "sheep": len(self.animals("sheep")),
-                "wolf": len(self.animals("wolf")),
+                "sheep": board.count("sheep"),
+                "wolf": board.count("wolf"),
                 "grass": int(self.grass.sum()),
             }
         )
