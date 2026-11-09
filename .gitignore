@@ -228,3 +228,5 @@ runs/
 
 # Claude Code: personal overrides stay local
 .claude/settings.local.json
+
+.vscode/
