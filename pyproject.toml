@@ -5,7 +5,9 @@ description = "Predator-prey simulation driven by interchangeable decision model
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "mesa>=3.3.1",
     "numpy>=1.26",
+    "omegaconf>=2.4.0",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
 ]

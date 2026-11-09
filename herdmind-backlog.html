@@ -132,7 +132,7 @@ input.who{width:110px}
   ],
   "id": "2",
   "label": "2",
-  "note": "",
+  "note": "Partly done in #12: soft-weighted heuristic brain (rules-0.2.0, handles distance options) + registry with per-species brains, contract-tested. Ignores the briefing by design. Remaining: its own parameters in config.",
   "order": 2,
   "status": "open",
   "title": "Rules brain: hand-written baseline that returns probabilities for wolves and sheep",
@@ -156,7 +156,7 @@ input.who{width:110px}
   "deps": [],
   "id": "4",
   "label": "4",
-  "note": "",
+  "note": "Partly done in #12: OmegaConf loader into WorldSpec, two seeds (world_seed = layout, seed = run), start_run() (config, seeds, brains + model_version per species, commit, dirty flag, versions), run_experiment(). Remaining: multi-seed sweep / seed override (item 19).",
   "order": 4,
   "status": "open",
   "title": "Config + run folders: YAML/dataclass loader (OmegaConf), `start_run()` writing config snapshot, commit, seed, versions",
@@ -170,7 +170,7 @@ input.who{width:110px}
   ],
   "id": "5",
   "label": "5",
-  "note": "",
+  "note": "Partly done in #12: Mesa torus world split into agents / perception / model; kills, breeding, disease and energy burn come from swappable laws; speed; one batch call per brain; sampled actions; step in phases (move, graze, hunt, upkeep) so turn order does not decide outcomes; a wrong number of probabilities is an error; micro.yaml + pack-hunters.yaml (deliberately not tuned for outcomes). Remaining: balance from real runs, position index for larger worlds.",
   "order": 5,
   "status": "open",
   "title": "Mesa wolf–sheep world: grid, energy, eating, breeding, death; each step asks a Brain and samples the action; micro-scenario config",
@@ -184,7 +184,7 @@ input.who{width:110px}
   ],
   "id": "6",
   "label": "6",
-  "note": "",
+  "note": "Perception radius partly done in #12 (per-species `vision` trait). Remaining: the call action.",
   "order": 6,
   "status": "open",
   "title": "\"Call\" action + perception radius so signalling can emerge",
@@ -198,7 +198,7 @@ input.who{width:110px}
   ],
   "id": "7",
   "label": "7",
-  "note": "",
+  "note": "#12 gives the knobs (declarable traits + laws, per-species brains). Remaining: mid-run god-mode events, share-of-animals hybrid worlds, query-only-on-change.",
   "order": 7,
   "status": "open",
   "title": "Scenarios + god-mode events (drought, ice age, add wolves); hybrid worlds (share of animals on the model) and query-only-on-change",
@@ -212,7 +212,7 @@ input.who{width:110px}
   ],
   "id": "8",
   "label": "8",
-  "note": "",
+  "note": "Partly done in #12: question engine (encoding/engine.py), distance-aware action labels, perception render/parse, per-query shuffle, new Question.briefing field (laws, traits, goal as facts). Remaining: sign-off on the perception wording (TODO(verify)), richer perceptions.",
   "order": 8,
   "status": "open",
   "title": "State → question encoding: perceptions only, 3–8 runtime options, shuffle and map back",
@@ -253,7 +253,7 @@ input.who{width:110px}
   ],
   "id": "11",
   "label": "11",
-  "note": "",
+  "note": "Partly done in #12: decisions.jsonl (state, options, full distribution, sampled choice, brain, model_version, latency) + events.jsonl (births incl. initial animals at step 0, deaths with cause), flushed every step; seeds live in the run's meta.json. Remaining: parquet.",
   "order": 11,
   "status": "open",
   "title": "Decision log schema + logger (state, options, full distribution, chosen action, world/seed ids → parquet)",
@@ -551,6 +551,34 @@ input.who{width:110px}
   "status": "open",
   "title": "Conclusions, limitations, future work + presentation",
   "type": "low-code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "1"
+  ],
+  "id": "33",
+  "label": "33",
+  "note": "Closed by #12",
+  "order": 33,
+  "status": "done",
+  "title": "Declarable worlds: one YAML per world with grid params, species traits (energy, metabolism, speed, vision, breeding, disease, predation), named swappable laws, per-species brains; the world rendered in English for people and as a briefing for brains",
+  "type": "code"
+ },
+ {
+  "assignee": "",
+  "bundle": "",
+  "deps": [
+   "5"
+  ],
+  "id": "34",
+  "label": "34",
+  "note": "Closed by #12. `world/ledger.py`; the only population record (no separate populations file). ~420 KB per 100 steps on 20x20; may need a delta or binary format for big worlds.",
+  "order": 34,
+  "status": "done",
+  "title": "World ledger: exact board (grass, regrow timers, every animal's position and energy) after every step, in `ledger.jsonl`, readable back as `BoardState`s for replays, UI and world metrics",
+  "type": "code"
  }
 ]
 </script>

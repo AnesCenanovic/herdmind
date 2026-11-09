@@ -1,0 +1,47 @@
+# A world declaration. Anything left out takes the default from world/spec.py.
+name: micro
+description: Small baseline world. Wolves always kill, breeding needs no mate, no disease.
+steps: 100
+seed: 0        # run seed: option shuffles, action sampling, law rolls
+world_seed: 0  # layout seed: where animals and grass start
+
+grid:
+  width: 20
+  height: 20
+  grass_fraction: 0.5
+  grass_regrow_steps: 10
+
+species:
+  sheep:
+    count: 40
+    start_energy: 10
+    metabolism: 1
+    speed: 1
+    vision: 4
+    energy_gain: 6
+    breed_threshold: 20
+    breed_chance: 0.1
+    disease_chance: 0.0
+    goal: stay alive and have offspring
+  wolf:
+    count: 8
+    start_energy: 20
+    metabolism: 1
+    speed: 1
+    vision: 4
+    energy_gain: 15
+    breed_threshold: 40
+    breed_chance: 0.05
+    disease_chance: 0.0
+    predation_success: 1.0
+    goal: stay alive and have offspring
+
+laws:
+  predation: always_kill   # always_kill | chance | pack
+  breeding: split          # split | needs_mate
+  disease: none            # none | fatal | contagious
+  metabolism: flat         # flat | movement
+
+brains:
+  sheep: rules
+  wolf: rules
