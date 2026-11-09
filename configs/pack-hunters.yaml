@@ -1,0 +1,28 @@
+# Same grid as micro, harsher laws: wolves must hunt in packs, and moving costs energy.
+# With the rules brain the wolves die out by step 100 on seeds 0-4: they do not coordinate, and
+# this law needs them to. That is the point of the world: does a model brain hunt together?
+name: pack-hunters
+description: Fast wolves that can only kill together; sheep need a mate and catch disease.
+steps: 100
+seed: 0
+world_seed: 0
+
+species:
+  sheep:
+    count: 50
+    start_energy: 12
+    energy_gain: 10  # walking costs energy here, so grass is worth more
+    disease_chance: 0.01
+  wolf:
+    count: 10
+    start_energy: 25
+    speed: 2
+    energy_gain: 20
+    predation_success: 0.7
+
+laws:
+  predation: pack
+  pack_size: 2
+  breeding: needs_mate
+  disease: contagious
+  metabolism: movement

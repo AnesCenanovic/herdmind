@@ -1,4 +1,4 @@
-"""Run one experiment config: ``uv run python scripts/run_world.py configs/micro.yaml``."""
+"""Run one world declaration: ``uv run python scripts/run_world.py configs/micro.yaml``."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import logging
 import sys
 
 from herdmind.common.config import load_config
-from herdmind.world.config import ExperimentConfig
 from herdmind.world.experiment import run_experiment
+from herdmind.world.spec import WorldSpec
 
 
 def main(path: str) -> None:
     logging.basicConfig(level=logging.INFO)
-    run_dir = run_experiment(load_config(path, ExperimentConfig))
+    run_dir = run_experiment(load_config(path, WorldSpec))
     logging.getLogger(__name__).info("wrote %s", run_dir)
 
 

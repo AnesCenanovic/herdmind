@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import platform
 import subprocess
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
@@ -39,19 +40,20 @@ def start_run(
     cfg: object,
     name: str,
     seed: int,
-    brain: str,
-    model_version: str,
+    brains: Mapping[str, Mapping[str, str]],
     runs_dir: str | Path = "runs",
 ) -> Path:
-    """Create ``runs_dir/<name>-seed<seed>-<utc time>/`` with config and meta files."""
+    """Create ``runs_dir/<name>-seed<seed>-<utc time>/`` with config and meta files.
+
+    ``brains`` maps each species to its brain's name and pinned ``model_version``.
+    """
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
     run_dir = Path(runs_dir) / f"{name}-seed{seed}-{stamp}"
     run_dir.mkdir(parents=True)
     OmegaConf.save(OmegaConf.structured(cfg), run_dir / "config.yaml")
     meta = {
         "seed": seed,
-        "brain": brain,
-        "model_version": model_version,
+        "brains": {s: dict(b) for s, b in brains.items()},
         "commit": _git_commit(),
         "dirty": _git_dirty(),
         "python": platform.python_version(),

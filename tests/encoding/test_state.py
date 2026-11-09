@@ -1,7 +1,7 @@
 import numpy as np
 
-from herdmind.encoding.actions import ACTIONS_BY_SPECIES
-from herdmind.encoding.encode import encode
+from herdmind.encoding.actions import actions_for
+from herdmind.encoding.engine import encode
 from herdmind.encoding.state import Perception, Sighting, parse, render
 
 P = Perception("sheep", 12, True, (Sighting("wolf", 2, "north"), Sighting("grass", 1, "east")))
@@ -17,8 +17,16 @@ def test_parse_inverts_render():
     assert parse(render(P)) == P
 
 
-def test_encode_shuffles_but_keeps_option_set():
-    labels = {a.value for a in ACTIONS_BY_SPECIES["sheep"]}
-    orders = {encode(1, P, np.random.default_rng(s)).options for s in range(20)}
-    assert len(orders) > 1
-    assert all(set(o) == labels for o in orders)
+def test_engine_shuffles_but_keeps_option_set_and_briefing():
+    actions = actions_for("sheep", 1)
+    labels = {a.label for a in actions}
+    qs = [encode(1, P, actions, "facts", np.random.default_rng(s)) for s in range(20)]
+    assert len({q.options for q in qs}) > 1
+    assert all(set(q.options) == labels and q.briefing == "facts" for q in qs)
+
+
+def test_engine_is_deterministic_for_a_seed():
+    actions = actions_for("wolf", 2)
+    a = encode(1, P, actions, "", np.random.default_rng(5))
+    b = encode(1, P, actions, "", np.random.default_rng(5))
+    assert a == b

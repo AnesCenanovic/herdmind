@@ -52,6 +52,7 @@ class Question:
     species: Literal["wolf", "sheep"]
     state_text: str              # perceptions only, no advice
     options: tuple[str, ...]     # runtime options, already shuffled
+    briefing: str = ""           # world laws, traits and goal, stated as facts
 
 @dataclass(frozen=True)
 class Decision:
@@ -66,7 +67,9 @@ class Brain(Protocol):
     def decide_batch(self, questions: Sequence[Question]) -> list[Decision]: ...
 ```
 
-- `decide_batch` is the only entry point; one world step = one batch call.
+- `decide_batch` is the only entry point; one world step = one batch call per
+  brain (species can use different brains; a shared brain is called once).
+- Questions are built only by the question engine (`encoding/engine.py`).
 - A brain returns probabilities, never an action. The world samples.
 - Shuffling and un-shuffling happen in `encoding/`, not in brains.
 - A missing probability for an option is an error, not a silent zero.
@@ -98,9 +101,15 @@ never reimplement them.
 - **Shuffle option order** before every query and map back afterwards;
   decision models have first-option bias.
 - **Describe perceptions, not advice** ("wolf 2 cells north"), never
-  "you should flee". Otherwise we measure our prompt, not the model.
-- **One RNG, passed down.** No `random.random()`, `np.random.*` globals or
+  "you should flee". Otherwise we measure our prompt, not the model. The
+  `briefing` states laws as facts ("wolves always kill a sheep they reach"),
+  never as strategy.
+- **Seeded RNGs, passed down.** No `random.random()`, `np.random.*` globals or
   unseeded `torch`. Use a `numpy.random.Generator` from `common/seeding.py`.
+  A world has two: `world_seed` (starting layout) and `seed` (everything after).
+- **Worlds are declared, not coded.** Grid params, species traits, laws and
+  brains come from one YAML (`world/spec.py`); laws are named variants in
+  `world/laws/`, and every trait and law renders to English (`world/describe.py`).
 - **No network outside `brains/jev.py`.** Tests never call the real API.
 - **Secrets** come from environment variables / `.env`. Never write a key into
   code, configs, logs, notebooks or commit messages.
