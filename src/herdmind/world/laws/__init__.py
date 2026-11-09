@@ -6,10 +6,13 @@ Adding a variant (say, "brutal wolves") means adding one entry to a family's
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from herdmind.world.laws import breeding, disease, metabolism, predation
 from herdmind.world.laws.base import Law
+
+if TYPE_CHECKING:
+    from herdmind.world.spec import LawsConfig
 
 FAMILIES: dict[str, dict[str, Law]] = {
     "predation": predation.KINDS,
@@ -19,20 +22,6 @@ FAMILIES: dict[str, dict[str, Law]] = {
 }
 
 
-@dataclass(frozen=True)
-class ActiveLaws:
-    """The one law of each family that holds in a given world."""
-
-    predation: Law
-    breeding: Law
-    disease: Law
-    metabolism: Law
-
-
-def make_laws(laws_cfg) -> ActiveLaws:
-    return ActiveLaws(**{f: FAMILIES[f][getattr(laws_cfg, f)] for f in FAMILIES})
-
-
-def describe_laws(spec) -> list[str]:
-    active = make_laws(spec.laws)
-    return [getattr(active, f).describe(spec) for f in FAMILIES]
+def make_laws(cfg: LawsConfig) -> dict[str, Law]:
+    """The one law of each family that holds in a world, keyed by family."""
+    return {family: kinds[getattr(cfg, family)] for family, kinds in FAMILIES.items()}

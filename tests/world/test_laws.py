@@ -27,7 +27,7 @@ def test_always_kill():
     w = _world()
     sheep, wolf = _place(w, "sheep", 5, 5), _place(w, "wolf", 5, 5, 20)
     w._hunt(wolf)
-    assert not sheep.alive and wolf.energy == 35
+    assert sheep not in w.animals() and wolf.energy == 35
 
 
 def test_chance_with_zero_success_never_kills():
@@ -35,17 +35,17 @@ def test_chance_with_zero_success_never_kills():
     w = _world(LawsConfig(predation="chance"), wolf=wolf_t)
     sheep, wolf = _place(w, "sheep", 5, 5), _place(w, "wolf", 5, 5, 20)
     w._hunt(wolf)
-    assert sheep.alive
+    assert sheep in w.animals()
 
 
 def test_pack_needs_enough_wolves():
     w = _world(LawsConfig(predation="pack", pack_size=2))
     sheep, wolf = _place(w, "sheep", 5, 5), _place(w, "wolf", 5, 5, 20)
     w._hunt(wolf)
-    assert sheep.alive  # alone
+    assert sheep in w.animals()  # alone
     _place(w, "wolf", 6, 6, 20)  # diagonal neighbour counts
     w._hunt(wolf)
-    assert not sheep.alive
+    assert sheep not in w.animals()
 
 
 def test_needs_mate_breeding():
@@ -53,18 +53,18 @@ def test_needs_mate_breeding():
     w = _world(LawsConfig(breeding="needs_mate"), sheep=eager)
     w.grass[:] = False
     lone = _place(w, "sheep", 0, 0)
-    assert not w.laws.breeding.apply(w, lone)
+    assert not w.laws["breeding"].apply(w, lone)
     _place(w, "sheep", 1, 0)
-    assert w.laws.breeding.apply(w, lone)
+    assert w.laws["breeding"].apply(w, lone)
 
 
 def test_fatal_disease_and_movement_metabolism():
     sick = SpeciesTraits(count=0, start_energy=10, disease_chance=1.0, breed_chance=0.0)
     w = _world(LawsConfig(disease="fatal", metabolism="movement"), sheep=sick)
     a = _place(w, "sheep", 0, 0)
-    assert w.laws.disease.apply(w, a)
+    assert w.laws["disease"].apply(w, a)
     a.moved = 2
-    assert w.laws.metabolism.apply(w, a) == 3  # 1 per step + 1 per cell
+    assert w.laws["metabolism"].apply(w, a) == 3  # 1 per step + 1 per cell
 
 
 def test_speed_moves_several_cells():
@@ -84,4 +84,4 @@ def test_pack_counts_wolves_where_they_end_up():
         a, b = _place(w, "wolf", 5, 5, 20), _place(w, "wolf", 6, 6, 20)
         w.brains = dict.fromkeys(("sheep", "wolf"), ScriptedBrain({b.unique_id: b_choice}))
         w.step()
-        assert sheep.alive is survives and a.alive
+        assert (sheep in w.animals()) is survives and a in w.animals()

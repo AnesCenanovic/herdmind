@@ -1,10 +1,6 @@
-"""Run logs: every decision, every birth or death, and the board after every step.
+"""Run logs, one JSON object per line: decisions (the distillation dataset),
+events (births and deaths, for emergence metrics) and the board ledger.
 
-Decisions are the distillation dataset (state, options, full distribution,
-chosen option); events feed the emergence metrics; the ledger (``state.py``)
-records the exact board. JSONL keeps it dependency
-free and append-only; logs are flushed every step, so a crashed run keeps
-every finished step.
 shortcut: JSONL, not parquet; convert when the dataset gets big (item 23).
 """
 
@@ -15,7 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from types import TracebackType
 
-from herdmind.world.state import LEDGER_FILE, BoardState
+from herdmind.world.ledger import LEDGER_FILE, BoardState
 
 
 @dataclass(frozen=True)
@@ -65,7 +61,7 @@ class RunLog:
     def event(self, rec: EventRecord) -> None:
         self._events.write(json.dumps(asdict(rec)) + "\n")
 
-    def state(self, board: BoardState) -> None:
+    def board(self, board: BoardState) -> None:
         self._ledger.write(board.to_json() + "\n")
 
     def close(self) -> None:

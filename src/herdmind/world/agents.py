@@ -13,12 +13,10 @@ if TYPE_CHECKING:
 class Animal(mesa.Agent):
     """One wolf or sheep.
 
-    ``alive`` turns False when it dies (it is also removed from the model);
     ``moved`` is the cells crossed this step, which a metabolism law may charge for.
     """
 
     def __init__(self, model: WorldModel, species: str, x: int, y: int, energy: int) -> None:
         super().__init__(model)
         self.species, self.x, self.y, self.energy = species, x, y, energy
-        self.alive = True
         self.moved = 0

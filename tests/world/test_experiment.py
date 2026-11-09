@@ -1,6 +1,7 @@
 import json
 
 from herdmind.world.experiment import run_experiment
+from herdmind.world.ledger import read_ledger
 from herdmind.world.spec import WorldSpec
 
 
@@ -10,8 +11,8 @@ def _lines(path):
 
 def test_run_folder_holds_everything_needed_to_learn_from_it(tmp_path):
     run = run_experiment(WorldSpec(steps=5), tmp_path)
-    pops = json.loads((run / "populations.json").read_text())
-    assert len(pops) == 6
+    ledger = read_ledger(run)
+    assert len(ledger) == 6
     meta = json.loads((run / "meta.json").read_text())
     assert meta["brains"]["wolf"] == {"brain": "rules", "model_version": "rules-0.2.0"}
     assert "always kills" in (run / "world.txt").read_text()
@@ -23,8 +24,7 @@ def test_run_folder_holds_everything_needed_to_learn_from_it(tmp_path):
     events = _lines(run / "events.jsonl")
     deaths = sum(e["kind"] == "death" for e in events)
     births = sum(e["kind"] == "birth" for e in events)
-    end = pops[-1]
-    assert births - deaths == end["sheep"] + end["wolf"]  # initial animals are step-0 births
+    assert births - deaths == len(ledger[-1].animals)  # initial animals are step-0 births
     # Every queried animal is logged, including sheep eaten later in the same step.
-    alive_at_start = sum(p["sheep"] + p["wolf"] for p in pops[:-1])
+    alive_at_start = sum(len(b.animals) for b in ledger[:-1])
     assert len(decisions) == alive_at_start

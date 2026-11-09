@@ -21,20 +21,14 @@ from herdmind.encoding.question import Question
 from herdmind.world.agents import Animal
 from herdmind.world.describe import briefing
 from herdmind.world.laws import make_laws
+from herdmind.world.ledger import BoardState, snapshot
 from herdmind.world.log import DecisionRecord, EventRecord, RunLog
 from herdmind.world.perception import perceive
 from herdmind.world.spec import SPECIES, SpeciesTraits, WorldSpec
-from herdmind.world.state import BoardState, snapshot
 
 
 class WorldModel(mesa.Model):
-    """One world. ``history`` holds per-step sheep/wolf/grass counts; with a log, the
-    full board of every step goes to the ledger (``world/state.py``).
-
-    Two RNGs from two seeds: ``world_seed`` lays out the start (animals, grass),
-    ``seed`` drives everything after (shuffles, sampling, law rolls). Same map,
-    different history, or the other way round.
-    """
+    """One world. With a log, every step's board goes to the ledger (``world/ledger.py``)."""
 
     def __init__(
         self, spec: WorldSpec, brains: Mapping[str, Brain], log: RunLog | None = None
@@ -47,8 +41,7 @@ class WorldModel(mesa.Model):
         self.briefings = {s: briefing(spec, s) for s in SPECIES}
         self.step_no = 0
         self._lay_out(make_rng(spec.world_seed))
-        self.history: list[dict[str, int]] = []
-        self._record()
+        self._write_board()
 
     def _lay_out(self, rng: np.random.Generator) -> None:
         g = self.spec.grid
@@ -87,6 +80,8 @@ class WorldModel(mesa.Model):
         # every animal moves, then sheep graze, then wolves hunt on the final positions.
         chosen: list[Action] = []
         for a, q, d in zip(acting, questions, decisions, strict=True):
+            if len(d.probs) != len(q.options):  # a missing probability is an error
+                raise ValueError(f"{d.brain}: {len(d.probs)} probs for {len(q.options)} options")
             p = np.asarray(d.probs)
             label = q.options[self.rng.choice(len(p), p=p / p.sum())]  # sample, never argmax
             self._log_decision(a, q, d, label)  # every decision, including soon-eaten sheep
@@ -103,7 +98,7 @@ class WorldModel(mesa.Model):
         growing = self.regrow > 0
         self.regrow[growing] -= 1
         self.grass |= growing & (self.regrow == 0)
-        self._record()
+        self._write_board()
         if self.log:
             self.log.flush()
 
@@ -135,7 +130,7 @@ class WorldModel(mesa.Model):
         if not prey:
             return
         target = prey[int(self.rng.integers(len(prey)))]
-        if self.laws.predation.apply(self, wolf, target):
+        if self.laws["predation"].apply(self, wolf, target):
             self._kill(target, "eaten", other_id=wolf.unique_id)
             wolf.energy += self.traits("wolf").energy_gain
 
@@ -146,17 +141,17 @@ class WorldModel(mesa.Model):
         list cannot change a later animal's mates or contagion neighbours.
         """
         for a in self.animals():
-            a.energy -= self.laws.metabolism.apply(self, a)
+            a.energy -= self.laws["metabolism"].apply(self, a)
             a.moved = 0
             if a.energy <= 0:
                 self._kill(a, "starved")
         survivors = self.animals()
-        sick = [a for a in survivors if self.laws.disease.apply(self, a)]
+        sick = [a for a in survivors if self.laws["disease"].apply(self, a)]
         sick_ids = {a.unique_id for a in sick}
         breeders = [
             a
             for a in survivors
-            if a.unique_id not in sick_ids and self.laws.breeding.apply(self, a)
+            if a.unique_id not in sick_ids and self.laws["breeding"].apply(self, a)
         ]
         for a in sick:
             self._kill(a, "disease")
@@ -167,7 +162,6 @@ class WorldModel(mesa.Model):
             self._event("birth", child, other_id=a.unique_id)
 
     def _kill(self, a: Animal, cause: str, other_id: int = -1) -> None:
-        a.alive = False
         a.remove()
         self._event("death", a, cause=cause, other_id=other_id)
 
@@ -193,18 +187,10 @@ class WorldModel(mesa.Model):
                 )
             )
 
-    def state(self) -> BoardState:
+    def board(self) -> BoardState:
         """The exact board right now."""
         return snapshot(self)
 
-    def _record(self) -> None:
-        board = self.state()
+    def _write_board(self) -> None:
         if self.log:
-            self.log.state(board)
-        self.history.append(
-            {
-                "sheep": board.count("sheep"),
-                "wolf": board.count("wolf"),
-                "grass": int(self.grass.sum()),
-            }
-        )
+            self.log.board(self.board())

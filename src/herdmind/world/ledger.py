@@ -1,9 +1,7 @@
-"""The ledger: the exact board at the end of every step of a run.
+"""The ledger: the exact board after every step (step 0 = start), in ``ledger.jsonl``.
 
-One ``BoardState`` per step (step 0 is the starting layout), written in order
-to ``ledger.jsonl`` in the run folder. It is the single record of how the world
-looked; replays, a UI, and world metrics read it instead of re-running the world.
-It holds the board only, not RNG state, so it shows a run but cannot resume one.
+It is the one record of how the world looked, for replays, a UI and world
+metrics. It holds the board, not RNG state, so it shows a run but cannot resume one.
 """
 
 from __future__ import annotations

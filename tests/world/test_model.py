@@ -54,26 +54,33 @@ def _positions(w):
     return sorted((a.species, a.x, a.y) for a in w.animals())
 
 
-def test_same_seeds_same_history():
-    assert _run(WorldSpec(seed=3)).history == _run(WorldSpec(seed=3)).history
+def test_same_seeds_same_board():
+    assert _run(WorldSpec(seed=3)).board() == _run(WorldSpec(seed=3)).board()
 
 
 def test_world_seed_fixes_the_map_and_seed_the_history():
     a, b = WorldSpec(world_seed=1, seed=1), WorldSpec(world_seed=1, seed=2)
     assert _positions(WorldModel(a, RULES)) == _positions(WorldModel(b, RULES))
-    assert _run(a).history != _run(b).history
+    assert _run(a).board() != _run(b).board()
     other_map = WorldSpec(world_seed=2, seed=1)
     assert _positions(WorldModel(a, RULES)) != _positions(WorldModel(other_map, RULES))
 
 
-def test_populations_are_sane():
-    h = _run(WorldSpec(seed=1)).history
+def test_board_stays_sane():
+    board = _run(WorldSpec(seed=1)).board()
     g = WorldSpec().grid
-    assert len(h) == 31
-    assert all(
-        r["sheep"] >= 0 and r["wolf"] >= 0 and 0 <= r["grass"] <= g.width * g.height for r in h
-    )
-    assert h[0] != h[-1]
+    assert board.step == 30 and len(board.grass) == g.height
+    assert all(0 <= a.x < g.width and 0 <= a.y < g.height and a.energy > 0 for a in board.animals)
+
+
+def test_wrong_number_of_probs_is_an_error():
+    class ShortBrain(UniformBrain):
+        def decide_batch(self, questions):
+            return [Decision((0.5, 0.5), 0.0, "short", "v0") for _ in questions]
+
+    b = ShortBrain()
+    with pytest.raises(ValueError, match="2 probs for"):
+        WorldModel(WorldSpec(), {"sheep": b, "wolf": b}).step()
 
 
 def _solo_sheep(**traits):

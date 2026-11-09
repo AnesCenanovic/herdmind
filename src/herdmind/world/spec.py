@@ -1,14 +1,7 @@
 """The world declaration: one YAML file describes a whole world.
 
-Kept in separate layers on purpose, so each can change without touching the others:
-
-- ``grid``: the environment (size, grass).
-- ``species``: traits, numbers that say *how much* (energy, speed, chances).
-- ``laws``: named rules that say *what happens* (does a wolf always kill?).
-- ``brains``: which decision model answers for each species.
-
-Laws read traits, so numbers stay tweakable and logic stays swappable. Every
-part renders to English (``world/describe.py``) for people and for brains.
+Traits say *how much* (energy, speed, chances); laws say *what happens* and read
+the traits, so numbers stay tweakable and logic stays swappable.
 """
 
 from __future__ import annotations
@@ -18,7 +11,7 @@ from dataclasses import dataclass, field, fields
 from herdmind.world.laws import FAMILIES
 
 SPECIES = ("sheep", "wolf")
-# Options grow as 4 * speed + 2; speed 3 gives a sheep 14 options.
+# Options per animal: 4 * speed moves + stay (+ eat for sheep); speed 3 gives a sheep 14.
 MAX_SPEED = 3
 
 
@@ -50,8 +43,7 @@ class SpeciesTraits:
     breed_chance: float = 0.1  # per step, once over the threshold
     disease_chance: float = 0.0  # per step; used only by a disease law
     predation_success: float = 1.0  # per kill attempt; used only by predators
-    # Shown verbatim to brains: keep it an end ("stay alive"), never a strategy
-    # ("avoid wolves"), or we measure our prompt instead of the model.
+    # Shown verbatim to brains: an end ("stay alive"), never a strategy.
     goal: str = "stay alive and have offspring"
 
     def __post_init__(self) -> None:

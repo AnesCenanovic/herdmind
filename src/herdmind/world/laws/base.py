@@ -9,11 +9,7 @@ from typing import Any
 
 @dataclass(frozen=True)
 class Law:
-    """One named rule.
-
-    ``apply`` takes the world first; its other arguments depend on the family.
-    ``describe`` turns the world spec into one plain sentence, stated as a fact.
-    """
+    """One named rule. ``apply`` takes the world first; other arguments depend on the family."""
 
     apply: Callable[..., Any]
     describe: Callable[[Any], str]

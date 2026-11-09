@@ -12,8 +12,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-DIRECTIONS = ("north", "south", "east", "west")
-
 
 @dataclass(frozen=True)
 class Sighting:

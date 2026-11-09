@@ -107,9 +107,7 @@ never reimplement them.
 - **Seeded RNGs, passed down.** No `random.random()`, `np.random.*` globals or
   unseeded `torch`. Use a `numpy.random.Generator` from `common/seeding.py`.
   A world has two: `world_seed` (starting layout) and `seed` (everything after).
-- **Worlds are declared, not coded.** Grid params, species traits, laws and
-  brains come from one YAML (`world/spec.py`); laws are named variants in
-  `world/laws/`, and every trait and law renders to English (`world/describe.py`).
+- **Worlds are declared, not coded:** one YAML per world (`world/spec.py`).
 - **No network outside `brains/jev.py`.** Tests never call the real API.
 - **Secrets** come from environment variables / `.env`. Never write a key into
   code, configs, logs, notebooks or commit messages.

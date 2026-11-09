@@ -14,12 +14,7 @@ from herdmind.world.spec import WorldSpec
 
 
 def run_experiment(spec: WorldSpec, runs_dir: str | Path = "runs") -> Path:
-    """Run ``spec`` and return its run folder.
-
-    The folder holds ``config.yaml``, ``meta.json`` (seeds, brains, versions,
-    commit), ``world.txt`` and ``briefings.json`` (the world in English),
-    ``decisions.jsonl``, ``events.jsonl`` and ``populations.json``.
-    """
+    """Run ``spec`` and return its run folder."""
     brains = make_brains(spec.brain_names())
     # TODO(verify): model_version is not on the Brain protocol; jev/decider must expose it.
     versions = {
@@ -33,5 +28,4 @@ def run_experiment(spec: WorldSpec, runs_dir: str | Path = "runs") -> Path:
         (run_dir / "briefings.json").write_text(json.dumps(world.briefings, indent=2))
         for _ in range(spec.steps):
             world.step()
-    (run_dir / "populations.json").write_text(json.dumps(world.history))
     return run_dir

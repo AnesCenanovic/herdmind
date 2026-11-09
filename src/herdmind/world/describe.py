@@ -1,12 +1,8 @@
-"""The world in plain English, for people (UI, run folders) and for brains.
-
-Facts only, never strategy: "wolves always kill a sheep they reach" is a law;
-"you should flee" is advice and would mean we measure our prompt, not the model.
-"""
+"""The world in plain English, for people (UI, run folders) and for brains."""
 
 from __future__ import annotations
 
-from herdmind.world.laws import describe_laws
+from herdmind.world.laws import make_laws
 from herdmind.world.laws.base import pct
 from herdmind.world.spec import SPECIES, SpeciesTraits, WorldSpec
 
@@ -39,7 +35,7 @@ def _world_facts(spec: WorldSpec) -> list[str]:
         "An animal whose energy reaches 0 dies.",
         "Each step, all animals move at once; then sheep eat, then wolves hunt.",
         '"Within 1 cell" includes the diagonal cells.',
-        *describe_laws(spec),
+        *(law.describe(spec) for law in make_laws(spec.laws).values()),
         *(line for s in SPECIES for line in describe_species(s, spec.species.of(s))),
     ]
 
