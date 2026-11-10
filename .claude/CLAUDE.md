@@ -125,6 +125,8 @@ never reimplement them.
 - `logging` (`logger = logging.getLogger(__name__)`), never `print` in library code.
 - `snake_case` modules/functions, `PascalCase` classes; abbreviations only `cfg`, `rng`, `obs`.
 - Code, comments and docs in English.
+- Use Google-style docstrings (`Args:`, `Returns:`, `Raises:`) for multi-line docstrings on public functions and classes.
+- Keep paths and scripts cross-platform (use `pathlib.Path` instead of hardcoded `/` or `\` separators, and avoid Unix-only shell assumptions so everything runs natively on Windows).
 
 ## Tests
 

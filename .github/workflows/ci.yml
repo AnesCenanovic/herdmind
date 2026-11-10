@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
       - name: Block forbidden files
         run: |
-          bad=$(git ls-files | grep -E '(^|/)(data|runs)/|(^|/)\.env(\..*)?$|\.(ckpt|safetensors|pt)$|settings\.local\.json$' || true)
+          bad=$(git ls-files | grep -E '(^|/)(data|runs)/|(^|/)\.env(\..*)?$|\.(ckpt|safetensors|pt)$|settings\.local\.json$' | grep -Ev '(^|/)\.env\.example$' || true)
           if [ -n "$bad" ]; then echo "Forbidden files tracked:"; echo "$bad"; exit 1; fi
       - name: Block notebook outputs
         run: |
