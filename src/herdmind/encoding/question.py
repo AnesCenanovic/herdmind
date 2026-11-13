@@ -17,12 +17,18 @@ class Question:
 
     ``state_text`` holds perceptions only ("wolf 2 cells north"), never advice,
     otherwise we measure our prompt instead of the model.
+
+    ``briefing`` holds the world's laws, the species' traits and the animal's
+    goal, stated as facts ("wolves always kill a sheep they reach"), never as
+    strategy. It is the same for every animal of a species in one world, and is
+    what lets a brain adapt to worlds whose laws differ.
     """
 
     agent_id: int
     species: Literal["wolf", "sheep"]
     state_text: str
     options: tuple[str, ...]
+    briefing: str = ""
 
     def __post_init__(self) -> None:
         if self.species not in ("wolf", "sheep"):

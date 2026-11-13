@@ -1,0 +1,25 @@
+# Same grid as micro, different laws: wolves can only kill together, and moving costs energy.
+name: pack-hunters
+description: Fast wolves that can only kill together; sheep need a mate and catch disease.
+steps: 100
+seed: 0
+world_seed: 0
+
+species:
+  sheep:
+    count: 50
+    start_energy: 12
+    disease_chance: 0.01
+  wolf:
+    count: 10
+    start_energy: 25
+    speed: 2
+    energy_gain: 20
+    predation_success: 0.7
+
+laws:
+  predation: pack
+  pack_size: 2
+  breeding: needs_mate
+  disease: contagious
+  metabolism: movement
