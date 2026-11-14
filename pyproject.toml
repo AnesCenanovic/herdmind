@@ -8,6 +8,7 @@ dependencies = [
     "mesa>=3.3.1",
     "numpy>=1.26",
     "omegaconf>=2.4.0",
+    "pyarrow>=17",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
 ]
