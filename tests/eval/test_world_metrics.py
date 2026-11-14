@@ -160,25 +160,36 @@ def test_evaluate_run_dir_round_trip(tmp_path: Path) -> None:
         [
             AnimalState(1, "sheep", 2, 2, 10),
             AnimalState(2, "sheep", 3, 2, 10),
+            AnimalState(3, "sheep", 4, 2, 10),
             AnimalState(9, "wolf", 8, 8, 20),
+            AnimalState(10, "wolf", 8, 9, 20),
         ],
     )
     b1 = _board(
         1,
         [
             AnimalState(1, "sheep", 2, 3, 10),
-            AnimalState(2, "sheep", 3, 3, 10),
-            AnimalState(9, "wolf", 8, 7, 19),
+            AnimalState(3, "sheep", 4, 3, 10),
+            AnimalState(9, "wolf", 3, 2, 25),
+            AnimalState(10, "wolf", 3, 3, 20),
         ],
     )
     (tmp_path / "ledger.jsonl").write_text(
         "\n".join([b0.to_json(), b1.to_json()]) + "\n", encoding="utf-8"
     )
-    ev = EventRecord(step=1, kind="birth", agent_id=3, species="sheep", other_id=1)
-    (tmp_path / "events.jsonl").write_text(json.dumps(ev.__dict__) + "\n", encoding="utf-8")
+    events = [
+        EventRecord(step=1, kind="death", agent_id=2, species="sheep", cause="eaten", other_id=9),
+    ]
+    (tmp_path / "events.jsonl").write_text(
+        "\n".join(json.dumps(e.__dict__) for e in events) + "\n", encoding="utf-8"
+    )
 
-    summary = evaluate_run_dir(tmp_path, burn_in_frac=0.0)
-    assert summary.population.sheep == (2, 2)
-    assert not summary.population.extinct
-    assert summary.herd_cohesion == pytest.approx(1.0)
-    assert math.isnan(summary.pack_hunting_rate)
+    # Two wolves at kill site: counts as pack hunt for pack_size=2, not for pack_size=3.
+    summary_p2 = evaluate_run_dir(tmp_path, pack_size=2, burn_in_frac=0.0)
+    assert summary_p2.population.sheep == (3, 2)
+    assert not summary_p2.population.extinct
+    assert summary_p2.herd_cohesion == pytest.approx(1.0)
+    assert summary_p2.pack_hunting_rate == pytest.approx(1.0)
+
+    summary_p3 = evaluate_run_dir(tmp_path, pack_size=3, burn_in_frac=0.0)
+    assert summary_p3.pack_hunting_rate == pytest.approx(0.0)

@@ -415,19 +415,12 @@ def summarize_run(
 def evaluate_run_dir(
     run_dir: str | Path,
     *,
+    pack_size: int,
     pack_radius: int = 1,
-    pack_size: int | None = None,
     burn_in_frac: float = 0.1,
 ) -> EmergenceSummary:
     """Load ``ledger.jsonl`` and ``events.jsonl`` from ``run_dir`` and compute metrics."""
     run_path = Path(run_dir)
-    if pack_size is None:
-        spec_path = run_path / "spec.json"
-        if spec_path.exists():
-            spec_data = json.loads(spec_path.read_text(encoding="utf-8"))
-            pack_size = int(spec_data.get("laws", {}).get("pack_size", 2))
-        else:
-            pack_size = 2
     boards = read_ledger(run_path)
     events = read_events(run_path)
     return summarize_run(
