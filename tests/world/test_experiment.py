@@ -39,4 +39,7 @@ def test_run_exports_decisions_to_parquet_with_run_ids(tmp_path):
     table = pq.read_table(run / "decisions.parquet")
     assert table.schema.equals(DECISION_SCHEMA)
     ids = {"world": spec.name, "world_seed": 9, "seed": 4, "run": run.name}
-    assert table.to_pylist() == [ids | rec for rec in _lines(run / "decisions.jsonl")]
+    rows = table.to_pylist()
+    assert rows == [ids | rec for rec in _lines(run / "decisions.jsonl")]
+    briefings = json.loads((run / "briefings.json").read_text())
+    assert rows and all(r["briefing"] == briefings[r["species"]] for r in rows)

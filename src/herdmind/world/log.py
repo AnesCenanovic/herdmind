@@ -42,6 +42,7 @@ DECISION_SCHEMA = pa.schema(
         ("brain", pa.string()),
         ("model_version", pa.string()),
         ("state_text", pa.string()),
+        ("briefing", pa.string()),
         ("options", pa.list_(pa.string())),
         ("probs", pa.list_(pa.float64())),  # aligned with options
         ("chosen", pa.string()),  # the sampled option, not the argmax
@@ -59,6 +60,7 @@ class DecisionRecord:
     brain: str
     model_version: str
     state_text: str
+    briefing: str  # as the brain saw it; differs per world and species
     options: tuple[str, ...]
     probs: tuple[float, ...]
     chosen: str  # the sampled option, not the argmax
