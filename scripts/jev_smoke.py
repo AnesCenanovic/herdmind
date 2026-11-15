@@ -69,9 +69,18 @@ def main() -> None:
         answers = data["answers"]
         print("\n--- Summary ---")
         print(f"Is it a bug?  {answers['is_bug']['noul']:.0%} yes")
-        print(
-            f"Owning team:  {answers['team']['choice']} (confidence {answers['team']['confidence']})"
-        )
+        team = answers["team"]
+        print(f"Owning team:  {team['choice']} (confidence {team.get('confidence')})")
+        # Soft-label distillation needs one probability per option, not just the top
+        # choice; see docs/research/jev-decisions-api.md.
+        probs = team.get("probabilities")
+        print(f"Per-option probabilities: {probs}")
+        if probs is not None:
+            offered = sorted(payload["questions"]["team"]["criteria"])
+            print(f"  options covered: {sorted(probs) == offered}")
+            print(f"  sum: {sum(probs.values())!r}")
+        # The dated snapshot is what a run should pin as model_version.
+        print(f"Model snapshot: {data.get('model', 'MISSING')}")
         print(f"Cost of this call: ${data['usage']['cost']}")
 
 

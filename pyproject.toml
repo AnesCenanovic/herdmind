@@ -5,12 +5,19 @@ description = "Predator-prey simulation driven by interchangeable decision model
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "matplotlib>=3.8",
     "mesa>=3.3.1",
     "numpy>=1.26",
     "omegaconf>=2.4.0",
+    "pyarrow>=17",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
 ]
+
+[project.optional-dependencies]
+# Fine-tuning only (items 20 and 26). Worlds and the fast tests do not need it;
+# install on the GPU machine with `pip install -e ".[train]"`.
+train = ["decider-ai>=1.10", "peft>=0.13", "torch>=2.5"]
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.6"]
