@@ -1,0 +1,29 @@
+# Pilot LoRA fine-tune (backlog item 20): time and memory on one machine.
+# Anything left out takes the default from distill/pilot.py.
+# Run the same file on each candidate platform and compare pilot_report.json.
+name: pilot-lora
+seed: 0
+model: Mapika/decider-2b
+
+# Rows: decisions logged by a world run. Empty data_run = run `world` first
+# (rules brain, so no API key is needed for the pilot).
+data_run: ""
+world: configs/micro.yaml
+question_text: What does this animal do next?
+max_rows: 2000
+max_ctx_tokens: 1536
+
+batch_size: 8
+accum: 1
+steps: 60
+warmup_steps: 5   # left out of timing
+lr: 1.0e-4        # Decider v12 card value
+labels: soft      # soft | hard
+dtype: bfloat16   # bfloat16 | float16 | float32
+grad_checkpointing: true
+
+lora:
+  rank: 64        # Decider v12 card value
+  alpha: 128
+  dropout: 0.0
+  target_modules: [all-linear]
