@@ -261,6 +261,9 @@ def train_steps(
             tokens.append(step_tokens)
             rows.append(step_rows)
             losses.append(step_loss)
+            logger.info(
+                "step %d/%d: %.2f s, loss %.4f", step + 1, cfg.steps, seconds[-1], step_loss
+            )
     except torch.cuda.OutOfMemoryError:
         logger.warning("out of GPU memory at optimizer step %d", len(seconds))
         status = "oom"
@@ -371,7 +374,7 @@ def run_pilot(cfg: PilotConfig, runs_dir: str | Path = "runs") -> Path:
     model_info = {
         **student,
         # The exact weights: the Hub commit the files were resolved to.
-        "commit": getattr(model.lm.config, "_commit_hash", None),
+        "commit": _resolved_commit(model.lm, cfg.model),
         "trainable_params": trainable,
         # Download (first time), load, tokenizing the rows and adding adapters.
         "setup_seconds": setup_seconds,
@@ -459,6 +462,25 @@ def build_items(rows: Sequence[DistillRow], tok: Any, cfg: PilotConfig, chat: An
         if item["perms"] != [list(range(len(row.options)))]:
             raise ValueError(f"prompt options do not match the logged ones: {item['perms']}")
     return items
+
+
+def _resolved_commit(lm: Any, model_id: str) -> str | None:
+    """The Hub commit the weights came from, or None for a local folder.
+
+    Newer ``transformers`` no longer keep it on the config (seen as null in the
+    first Colab report), so fall back to the snapshot folder name in the local
+    Hub cache. That lookup reads the disk only.
+    """
+    commit = getattr(lm.config, "_commit_hash", None)
+    if commit:
+        return str(commit)
+    try:
+        from huggingface_hub import try_to_load_from_cache
+
+        cached = try_to_load_from_cache(model_id, "config.json")
+    except (ImportError, ValueError):
+        return None
+    return Path(cached).parent.name if isinstance(cached, str) else None
 
 
 def _load_student(cfg: PilotConfig, rows: Sequence[DistillRow]) -> tuple[Any, list]:
