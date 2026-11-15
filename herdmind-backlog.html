@@ -140,6 +140,20 @@ input.who{width:110px}
  },
  {
   "assignee": "",
+  "bundle": "2",
+  "deps": [
+   "1"
+  ],
+  "id": "35",
+  "label": "35",
+  "note": "Closed by #23. `brains/uniform.py`, registered as `random` (random-1.0.0), contract-tested.",
+  "order": 35,
+  "status": "done",
+  "title": "Random brain: equal probability for every offered option. Null baseline: shows what the world produces with no intelligence, separates a broken config from a weak model; emergent behaviour only counts if it clearly beats it",
+  "type": "code"
+ },
+ {
+  "assignee": "",
   "bundle": "4",
   "deps": [],
   "id": "3",
@@ -156,9 +170,9 @@ input.who{width:110px}
   "deps": [],
   "id": "4",
   "label": "4",
-  "note": "Partly done in #12: OmegaConf loader into WorldSpec, two seeds (world_seed = layout, seed = run), start_run() (config, seeds, brains + model_version per species, commit, dirty flag, versions), run_experiment(). Remaining: multi-seed sweep / seed override (item 19).",
+  "note": "Partly done in #12: OmegaConf loader into WorldSpec, two seeds (world_seed = layout, seed = run), start_run() (config, seeds, brains + model_version per species, commit, dirty flag, versions), run_experiment(). Closed by #23: the multi-seed sweep / seed override moved to item 19.",
   "order": 4,
-  "status": "open",
+  "status": "done",
   "title": "Config + run folders: YAML/dataclass loader (OmegaConf), `start_run()` writing config snapshot, commit, seed, versions",
   "type": "code"
  },
@@ -170,9 +184,9 @@ input.who{width:110px}
   ],
   "id": "5",
   "label": "5",
-  "note": "Partly done in #12: Mesa torus world split into agents / perception / model; kills, breeding, disease and energy burn come from swappable laws; speed; one batch call per brain; sampled actions; step in phases (move, graze, hunt, upkeep) so turn order does not decide outcomes; a wrong number of probabilities is an error; micro.yaml + pack-hunters.yaml (deliberately not tuned for outcomes). Remaining: balance from real runs, position index for larger worlds.",
+  "note": "Partly done in #12: Mesa torus world split into agents / perception / model; kills, breeding, disease and energy burn come from swappable laws; speed; one batch call per brain; sampled actions; step in phases (move, graze, hunt, upkeep) so turn order does not decide outcomes; a wrong number of probabilities is an error; micro.yaml + pack-hunters.yaml (deliberately not tuned for outcomes). Closed by #23: balancing from real runs moved to item 36, a position index for larger worlds to item 28.",
   "order": 5,
-  "status": "open",
+  "status": "done",
   "title": "Mesa wolf–sheep world: grid, energy, eating, breeding, death; each step asks a Brain and samples the action; micro-scenario config",
   "type": "code"
  },
@@ -325,6 +339,22 @@ input.who{width:110px}
  },
  {
   "assignee": "",
+  "bundle": "",
+  "deps": [
+   "5",
+   "16",
+   "35"
+  ],
+  "id": "36",
+  "label": "36",
+  "note": "",
+  "order": 36,
+  "status": "open",
+  "title": "World viability: write the criteria down first (no extinction or explosion in the first steps, energy balance allows survival; nothing about the behaviours we measure), tune laws with the random + rules brains until micro and pack-hunters pass, then freeze those worlds before any model run",
+  "type": "experiment"
+ },
+ {
+  "assignee": "",
   "bundle": "16",
   "deps": [],
   "id": "17",
@@ -342,7 +372,8 @@ input.who{width:110px}
    "6",
    "8",
    "9",
-   "16"
+   "16",
+   "36"
   ],
   "id": "18",
   "label": "18",
@@ -432,14 +463,15 @@ input.who{width:110px}
   "deps": [
    "16",
    "18",
-   "19"
+   "19",
+   "35"
   ],
   "id": "24",
   "label": "24",
   "note": "",
   "order": 24,
   "status": "open",
-  "title": "Rules vs Jev experiments (micro + small, ≥5 seeds) with first charts",
+  "title": "Random vs rules vs Jev experiments (micro + small, ≥5 seeds) with first charts",
   "type": "experiment"
  },
  {
@@ -482,7 +514,7 @@ input.who{width:110px}
   "note": "",
   "order": 27,
   "status": "open",
-  "title": "Three-brain comparison incl. held-out drought scenario",
+  "title": "Brain comparison (random, rules, Jev, Decider) incl. held-out drought scenario",
   "type": "experiment"
  },
  {
@@ -494,7 +526,7 @@ input.who{width:110px}
   ],
   "id": "28",
   "label": "28",
-  "note": "",
+  "note": "From item 5: a position index so perception stays fast on larger worlds.",
   "order": 28,
   "status": "open",
   "title": "Medium showcase world on the local model + demo polish (god-mode buttons, presets, offline fallback)",

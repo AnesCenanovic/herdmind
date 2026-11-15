@@ -6,9 +6,10 @@ from collections.abc import Mapping
 
 from herdmind.brains.base import Brain
 from herdmind.brains.rules import RulesBrain
+from herdmind.brains.uniform import RandomBrain
 
 # jev and decider register here once they exist.
-_BRAINS = {"rules": RulesBrain}
+_BRAINS = {"random": RandomBrain, "rules": RulesBrain}
 
 
 def make_brain(name: str) -> Brain:
