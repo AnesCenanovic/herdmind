@@ -1,8 +1,7 @@
 # Pilot LoRA fine-tune (backlog item 20)
 
-Status: **one measurement (Colab free, Tesla T4), platform not picked yet.**
-The T4 run works and fits in memory, but is slow; see Results. Kaggle has not
-been measured.
+Status: **two measurements on Colab free (Tesla T4); a T4 with `dtype: float16`
+is fast enough. Platform not formally picked; Kaggle has not been measured.**
 
 ## What the pilot does
 
@@ -57,35 +56,44 @@ want to see progress.
 | Platform | GPU | dtype | batch | status | s/step (median) | s per 1k rows | peak GB | fast kernels |
 |---|---|---|---|---|---|---|---|---|
 | Colab free | Tesla T4 (15.6 GB) | bfloat16 | 8 | ok | 21.7 | 2,706 | 5.8 | partly (see below) |
+| Colab free | Tesla T4 (15.6 GB) | float16 | 8 | ok | 4.89 | 611 | 5.8 | partly (see below) |
 | Kaggle | | | | | | | | |
 
-Single run, seed 0, 2026-11-15, 55 timed steps (5 warm-up steps left out).
+One run per row, seed 0, 2026-11-15, 55 timed steps (5 warm-up steps left out).
+The float16 row is the shipped config with only `dtype` changed.
 Libraries: torch 2.14.1+cu130, peft 0.21.2, transformers 5.22.1, decider-ai
 1.10.0, flash-linear-attention 0.6.0, triton 3.8.0. Weights: commit `7614a6c`
-of `Mapika/decider-2b` (read from the download log; the report's `commit`
-field came out null, fixed since).
+of `Mapika/decider-2b` (null in the first report, read from the download log;
+the second report records it).
 
-What the Colab report says:
+What the Colab reports say:
 
 - **Memory is not the limit.** 4.1 GB after loading, 5.8 GB peak allocated
   (6.1 GB reserved) of 15.6 GB, with gradient checkpointing on. 67.3 M
   trainable parameters.
-- **Speed is.** 21.7 s per step of 8 rows (p95 21.8 s, so very steady), about
-  166 prompt tokens per second. Prompts were 405 tokens on average, 412 at most.
-- **The first step took 368 s.** It is left out of the timing. Probably one-off
-  kernel compilation; `TODO(verify)`.
-- **bfloat16 runs on the T4** (`bf16_supported: true`, compute capability 7.5).
-  Whether it runs *fast* is not shown: the T4 has no native bfloat16
-  arithmetic as far as we know, so PyTorch may be emulating it. `TODO(verify)`
-  with a `dtype: float16` run.
+  Identical for both dtypes.
+- **dtype decides the speed.** bfloat16: 21.7 s per step of 8 rows, about 166
+  prompt tokens per second. float16: 4.89 s per step, about 733 tokens per
+  second, so 4.4 times faster. Both are very steady (p95 within 1 % of the
+  median). Prompts were 405 tokens on average, 412 at most.
+- **bfloat16 runs on the T4 but should not be used there.** PyTorch reports
+  `bf16_supported: true` (compute capability 7.5), yet it is the slow path.
+  This answers the open check from `decider-2b.md`: on a T4, train in float16.
+- **The first step took 368 s (bfloat16) and 321 s (float16).** It is left out
+  of the timing. Probably one-off kernel compilation; `TODO(verify)`. It is a
+  fixed cost per session, about 5 to 6 minutes.
+- **Losses are not comparable evidence.** The float16 run ended at 0.17 and
+  the bfloat16 run at 0.10, with a noisier first ten steps in float16. One
+  seed each and rules-brain labels; item 22 should check float16 training
+  quality over several seeds before relying on it.
 - **Fast kernels: partly.** Triton imports and `flash-linear-attention` is
   installed, but `transformers` warned that `causal_conv1d_fn` fell back to its
   reference PyTorch implementation ("correct but much slower") because
   `causal_conv1d` is not installed. `flash-attn` is not installed either.
 
-Still to measure before deciding: the same config with `dtype: float16`, with
-`causal_conv1d` installed, and without gradient checkpointing (memory has
-room for it), plus one Kaggle run.
+Not measured: `causal_conv1d` installed, gradient checkpointing off (memory
+has room for it), a larger batch, and Kaggle. Each could only make the T4
+faster than the float16 row.
 
 ## Decision
 
@@ -93,10 +101,14 @@ Open. Rule of thumb for reading the table: the full fine-tune (item 26) costs
 about `rows x epochs x (s per 1k rows) / 1000` seconds, and must fit inside one
 session of the platform with room to spare.
 
-At the measured 2,706 s per 1,000 rows, one epoch over 10,000 rows is about
-7.5 hours on a free Colab T4. That is too slow as configured: either the
-variants above bring it down several times, or item 26 needs a faster GPU or a
-smaller training set.
+One epoch over 10,000 rows on a free Colab T4, plus about 6 minutes of
+start-up: about 7.5 hours in bfloat16 (too slow), about 1.7 hours in float16.
+
+Recommendation: a T4 with `dtype: float16` is enough for item 26 at that
+scale, so a free platform will do. Colab free is measured and works; Kaggle
+offers the same GPU class with a fixed weekly quota and is unmeasured. Long
+runs must save checkpoints, because a free Colab session can end without
+warning (the first run's session expired shortly after it finished).
 
 ## Provisional choices to confirm before item 22
 
