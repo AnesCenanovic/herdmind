@@ -278,10 +278,13 @@ def run_pilot(cfg: PilotConfig, runs_dir: str | Path = "runs") -> Path:
             compute_capability=f"{props.major}.{props.minor}",
             # True on a T4 even though bfloat16 is the slow path there.
             bf16_supported=bool(torch.cuda.is_bf16_supported()),
-            peak_allocated_gb=torch.cuda.max_memory_allocated() / BYTES_PER_GB,
         )
     report = {
         "environment": env,
+        # Single GPU: the pilot never spreads the model over more than one.
+        "memory": {
+            "peak_allocated_gb": torch.cuda.max_memory_allocated() / BYTES_PER_GB if cuda else None
+        },
         "data": {
             "run": data_run,
             "rows": len(rows),
@@ -367,6 +370,7 @@ def _load_student(cfg: PilotConfig, rows: Sequence[DistillRow]) -> tuple[Any, li
     model = DecisionModel(path, dtype=getattr(torch, cfg.dtype), grad_ckpt=False)
     # Non-re-entrant: with a frozen base the re-entrant kind passes no gradient to the adapters.
     model.lm.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    # The repo id, not the local path: the chat template may be picked by model name.
     items = build_items(rows, model.tok, cfg, chat=chat_for_model(cfg.model, model.tok))
     return model, items
 
