@@ -108,7 +108,9 @@ never reimplement them.
   unseeded `torch`. Use a `numpy.random.Generator` from `common/seeding.py`.
   A world has two: `world_seed` (starting layout) and `seed` (everything after).
 - **Worlds are declared, not coded:** one YAML per world (`world/spec.py`).
-- **No network outside `brains/jev.py`.** Tests never call the real API.
+- **No network outside `brains/jev.py`**, except downloading pinned model
+  weights in `distill/` (a fixed Hub `revision`, never a branch). Tests never
+  call the real API or download weights.
 - **Secrets** come from environment variables / `.env`. Never write a key into
   code, configs, logs, notebooks or commit messages.
 - **Pin model versions** (e.g. `jev-1.13.0`) so a run can be reproduced.

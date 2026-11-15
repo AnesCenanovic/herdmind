@@ -15,8 +15,8 @@ from pathlib import Path
 import numpy as np
 
 from herdmind.brains.base import PROB_SUM_TOL
+from herdmind.world.log import DECISIONS_FILE
 
-DECISIONS_FILE = "decisions.jsonl"
 BRIEFINGS_FILE = "briefings.json"
 
 

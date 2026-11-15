@@ -173,18 +173,18 @@ class WorldModel(mesa.Model):
         if self.log:
             self.log.decision(
                 DecisionRecord(
-                    self.step_no,
-                    a.unique_id,
-                    a.species,
-                    d.brain,
-                    d.model_version,
-                    q.state_text,
-                    q.briefing,
-                    q.options,
-                    d.probs,
-                    chosen,
-                    d.latency_s,
-                    d.cached,
+                    step=self.step_no,
+                    agent_id=a.unique_id,
+                    species=a.species,
+                    brain=d.brain,
+                    model_version=d.model_version,
+                    state_text=q.state_text,
+                    briefing=q.briefing,
+                    options=q.options,
+                    probs=d.probs,
+                    chosen=chosen,
+                    latency_s=d.latency_s,
+                    cached=d.cached,
                 )
             )
 
