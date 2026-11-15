@@ -4,6 +4,7 @@
 name: pilot-lora
 seed: 0
 model: Mapika/decider-2b
+revision: 7614a6c7ea5a047aa7d7bcfb1a0015469381c3e3   # v12
 
 # Rows: decisions logged by a world run. Empty data_run = run `world` first
 # (rules brain, so no API key is needed for the pilot).
@@ -14,16 +15,13 @@ max_rows: 2000
 max_ctx_tokens: 1536
 
 batch_size: 8
-accum: 1
 steps: 60
 warmup_steps: 5   # left out of timing
 lr: 1.0e-4        # Decider v12 card value
 labels: soft      # soft | hard
-dtype: bfloat16   # bfloat16 | float16 | float32
-grad_checkpointing: true
+dtype: float16    # 4.4x faster than bfloat16 on a T4 (docs/research/lora-pilot.md)
 
 lora:
   rank: 64        # Decider v12 card value
   alpha: 128
-  dropout: 0.0
   target_modules: [all-linear]

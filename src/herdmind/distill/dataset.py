@@ -4,6 +4,9 @@ A run's ``decisions.jsonl`` already is the dataset: every row holds what a brain
 was shown and the full distribution it answered with. This module only reads
 it, so training never re-derives a question outside the question engine. No
 torch here; the rows are plain records that any trainer can consume.
+
+``decisions.parquet`` (same rows plus world and seed ids) is meant to become the
+dataset once many runs are combined; switching this loader to it is item 23.
 """
 
 from __future__ import annotations
@@ -15,8 +18,8 @@ from pathlib import Path
 import numpy as np
 
 from herdmind.brains.base import PROB_SUM_TOL
+from herdmind.world.log import DECISIONS_FILE
 
-DECISIONS_FILE = "decisions.jsonl"
 BRIEFINGS_FILE = "briefings.json"
 
 

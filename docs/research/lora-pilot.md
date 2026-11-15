@@ -13,18 +13,20 @@ is fast enough. Platform not formally picked; Kaggle has not been measured.**
    linear layer except the output head), with gradient checkpointing.
 3. Trains 60 optimizer steps at batch 8 against the logged distributions
    (KL loss; `labels: hard` switches to cross-entropy on the argmax).
-4. Writes `runs/pilot-lora-seed0-<time>/pilot_report.json`: seconds per step,
-   tokens per second, seconds per 1,000 rows, peak GPU memory, and what the
-   machine supports (GPU, compute capability, bfloat16, Triton, library warnings).
+4. Writes `runs/pilot-lora-seed0-<time>/pilot_report.json`: median seconds per
+   step, seconds per 1,000 rows, peak GPU memory, the GPU, its compute capability
+   and whether it reports bfloat16 support.
 
 It answers the two open checks left by item 13 (`decider-2b.md`): whether
-bfloat16 and the fla/Triton kernels work on a T4-class GPU. A fallback shows up
-under `warnings` in the report; an out-of-memory run ends with `status: "oom"`
-instead of a crash.
+bfloat16 and the fla/Triton kernels work on a T4-class GPU. A kernel fallback
+shows up as a warning in the run's log; an out-of-memory run ends with
+`status: "oom"` instead of a crash. (The first reports below were written by an
+earlier, larger version of the script that also collected warnings and package
+versions into the report.)
 
 Seconds per step cover forward, backward and the optimizer update only; batch
-preparation is left out. Downloading weights from the Hugging Face Hub is the
-one network call, made by the `decider`/`transformers` loaders.
+preparation is left out. Downloading the weights at the pinned `revision` from
+the Hugging Face Hub is the one network call (allowed in `distill/` by CLAUDE.md).
 
 The loss values say nothing about model quality: rules-brain labels, 60 steps.
 
@@ -39,8 +41,8 @@ The loss values say nothing about model quality: rules-brain labels, 60 steps.
 ```
 
 Then copy `pilot_report.json` out of the run folder. If the run ends with
-`oom`, lower `batch_size` (and raise `accum` to keep the same rows per step);
-if bfloat16 is unsupported or very slow, try `dtype: float16`.
+`oom`, lower `batch_size`. The shipped config uses `dtype: float16`, the fast
+path on a T4.
 
 The `torchao` line is needed on Colab (2026-11-15 image): it ships
 `torchao 0.10.0`, and `peft 0.21` refuses to add LoRA layers while a version
