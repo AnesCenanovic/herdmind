@@ -8,7 +8,7 @@ from pathlib import Path
 from herdmind.brains.registry import make_brains
 from herdmind.common.run import start_run
 from herdmind.world.describe import describe_world
-from herdmind.world.log import RunLog
+from herdmind.world.log import RunLog, export_decisions
 from herdmind.world.model import WorldModel
 from herdmind.world.spec import WorldSpec
 
@@ -23,9 +23,13 @@ def run_experiment(spec: WorldSpec, runs_dir: str | Path = "runs") -> Path:
     }
     run_dir = start_run(spec, spec.name, spec.seed, versions, runs_dir)
     (run_dir / "world.txt").write_text(describe_world(spec) + "\n", encoding="utf-8")
-    with RunLog(run_dir) as log:
-        world = WorldModel(spec, brains, log)
-        (run_dir / "briefings.json").write_text(json.dumps(world.briefings, indent=2))
-        for _ in range(spec.steps):
-            world.step()
+    try:
+        with RunLog(run_dir) as log:
+            world = WorldModel(spec, brains, log)
+            (run_dir / "briefings.json").write_text(json.dumps(world.briefings, indent=2))
+            for _ in range(spec.steps):
+                world.step()
+    finally:
+        # Also after a crash or Ctrl-C: the finished steps are still training data.
+        export_decisions(run_dir, spec.name, spec.world_seed, spec.seed)
     return run_dir

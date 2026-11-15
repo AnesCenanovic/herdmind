@@ -179,6 +179,7 @@ class WorldModel(mesa.Model):
                     d.brain,
                     d.model_version,
                     q.state_text,
+                    q.briefing,
                     q.options,
                     d.probs,
                     chosen,

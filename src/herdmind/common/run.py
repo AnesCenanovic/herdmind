@@ -12,7 +12,7 @@ from pathlib import Path
 
 from omegaconf import OmegaConf
 
-PACKAGES = ("herdmind", "numpy", "mesa", "omegaconf")
+PACKAGES = ("herdmind", "numpy", "mesa", "omegaconf", "pyarrow")
 
 
 def _git_commit() -> str:
