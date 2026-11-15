@@ -1,0 +1,14 @@
+# Figures built from finished run folders. Anything left out takes the default
+# from plots/figures.py. Run: uv run python scripts/make_figures.py configs/figures/default.yaml
+runs_dir: runs
+out_dir: runs/figures
+run_names: []        # world names to include, e.g. [micro]; empty = every run in runs_dir
+figures: [population]
+min_seeds: 5         # warn when a world has fewer seeds than this
+
+style:
+  width_in: 3.5      # one column of a two-column paper
+  height_in: 2.4     # per panel
+  font_size: 8
+  dpi: 300
+  formats: [png, pdf]
