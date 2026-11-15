@@ -1,4 +1,4 @@
-"""Null baseline brain: every offered option is equally likely.
+"""Null baseline brain, registered as ``random``: every offered option is equally likely.
 
 It shows what a world produces with no intelligence at all, so a broken world
 config can be told apart from a weak model, and emergent behaviour only counts

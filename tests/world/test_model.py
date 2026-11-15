@@ -4,27 +4,22 @@ import pytest
 
 from herdmind.brains.base import Decision
 from herdmind.brains.registry import make_brain, make_brains
+from herdmind.brains.uniform import RandomBrain
 from herdmind.world.model import WorldModel
 from herdmind.world.spec import Species, SpeciesTraits, WorldSpec
 
 RULES = make_brains({"sheep": "rules", "wolf": "rules"})
 
 
-class UniformBrain:
-    """Fake brain: every option equally likely, so argmax would always pick option 0."""
-
-    name = "uniform"
+class UniformBrain(RandomBrain):
+    """Random brain that records batch sizes; uniform, so argmax would always pick option 0."""
 
     def __init__(self) -> None:
         self.calls: list[int] = []
 
     def decide_batch(self, questions):
         self.calls.append(len(questions))
-        out = []
-        for q in questions:
-            n = len(q.options)
-            out.append(Decision((1 / n,) * n, 0.0, self.name, "v0"))
-        return out
+        return super().decide_batch(questions)
 
 
 class ScriptedBrain:
