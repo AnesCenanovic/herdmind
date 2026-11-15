@@ -239,9 +239,9 @@ input.who{width:110px}
   "deps": [],
   "id": "10",
   "label": "10",
-  "note": "Hint from #4: the smoke script reads `choice` + `confidence` for a choice question, so likely top option only. Confirm with the raw response.",
+  "note": "Closed by #18. Write-up: docs/research/jev-decisions-api.md. Docs say `choice` returns `probabilities` for every option (soft labels possible), likely rounded to 2 decimals. Raw-response checks left as TODO(verify): no API key was available.",
   "order": 10,
-  "status": "open",
+  "status": "done",
   "title": "Research: Jev Decisions API. Limits (state size, max options, rate limits), pricing, batching. Key question: does `choice` return a probability for every option or only the top one plus confidence? Soft-label distillation depends on it.",
   "type": "research"
  },
